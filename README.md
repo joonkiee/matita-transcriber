@@ -5,16 +5,40 @@
 <h1 align="center">Matita Transcriber</h1>
 
 <p align="center">
-  <i>Matita</i> is Italian for "pencil". It listens to your recordings and writes them down.<br>
-  Turn lectures, interviews, meetings and voice memos into text, entirely on your Mac.<br>
-  Drag in your recordings, get searchable transcripts. Nothing is uploaded anywhere.
+  <b>Turn lectures, interviews, meetings and calls into text, summaries and notes. Entirely on your Mac, for free.</b><br>
+  <i>Matita</i> is Italian for "pencil": it listens to your recordings and writes them down.
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Matita main screen" width="820">
+  <a href="https://github.com/joonkiee/matita-transcriber/releases/latest"><b>⬇ Download for Mac</b></a> ·
+  <a href="https://joonkiee.github.io/matita-transcriber/">Website</a> ·
+  Apple Silicon · macOS 14+ · MIT licence
+</p>
+
+<p align="center">
+  <img src="docs/demo.gif" alt="Drop a recording, watch it transcribe, read the AI summary and title ideas" width="820">
 </p>
 
 ## Why Matita
+
+- **Nothing leaves your Mac.** Transcription ([whisper.cpp](https://github.com/ggml-org/whisper.cpp) or NVIDIA Parakeet), speaker names and even AI summaries (with [Ollama](https://ollama.com)) run locally.
+- **Free and unlimited.** No account, no subscription, no minute caps.
+- **Your files stay files.** Transcripts are plain `.txt` and `.srt` in a folder you choose, with optional Obsidian notes. Delete the app and they're still there.
+- **It does the filing for you.** iPhone Voice Memos, watched folders (an SD card, Zoom's recordings) and in-app recording, including the other people in a call, are transcribed, summarised and named on their own.
+- **Fast on Apple Silicon.** An hour of audio takes a few minutes.
+
+### How it compares
+
+| | **Matita** | MacWhisper | Otter / Granola |
+|---|---|---|---|
+| Where your audio is processed | On your Mac | On your Mac | Their servers |
+| AI summaries | On your Mac (Ollama) or Claude, your choice | With an AI service you connect | In their cloud |
+| Cost | Free | Free tier + paid Pro | Free tier + subscription |
+| Where transcripts live | Plain files in your folder, Obsidian notes | Exports | In their app |
+| Automatic intake | Voice Memos, watch folders, call recording | Watch folders, meeting recording | Meetings they join or record |
+| Open source | Yes (MIT) | No | No |
+
+<details><summary><b>All features</b></summary>
 
 - **Private.** Audio never leaves your Mac. Transcription runs locally with [whisper.cpp](https://github.com/ggml-org/whisper.cpp), the fast C++ version of OpenAI's Whisper.
 - **Fast on Apple Silicon.** Uses your Mac's GPU. An hour of audio typically takes a few minutes on an M-series Mac.
@@ -35,6 +59,8 @@
 - **Keyboard-first.** `⌘K` searches every transcript and runs any command; `⌘O` adds files.
 - **Save it the way you need it.** Word (.docx), Markdown for Notion and Obsidian, plain text, or subtitles (.srt).
 - **Guides you through setup and keeps itself up to date.** If something's missing, the app tells you what to do, and tells you when a new version is out.
+
+</details>
 
 ## Install
 
@@ -246,6 +272,26 @@ cd matita-transcriber
 3. GitHub Actions ([`build-app.yml`](.github/workflows/build-app.yml)) builds `Matita-3.21.0.dmg` on an Apple Silicon runner, tests it, and attaches it to the release. Apps already installed show **Download** within 12 hours. (The Terminal version updates itself from `main`.)
 
 To build the app yourself on a Mac: `bash scripts/build-app.sh` (needs the Xcode Command Line Tools and `cmake`).
+
+## FAQ
+
+**Does anything leave my Mac?**
+Your audio and transcripts never do. Matita only goes online to download speech models the first time (from Hugging Face and GitHub), to check GitHub for a new version, and, only if you choose Claude in AI assist, to send a transcript to Anthropic for a summary. With *This Mac (Ollama)* or AI assist off, everything stays local.
+
+**Why does macOS say it can't check Matita for malware?**
+Matita isn't signed with a paid Apple Developer ID. The app is open source and built in public by [GitHub Actions](.github/workflows/build-app.yml) from this repository. To open it the first time: click **Done**, then **System Settings → Privacy & Security → Open Anyway**. Or in Terminal: `xattr -dr com.apple.quarantine /Applications/Matita.app`.
+
+**Which languages?**
+Whisper handles about 100 languages, including Korean, Japanese and Chinese. Parakeet (the fastest model) covers English and 24 European languages.
+
+**How much space does it need?**
+The app is about 100 MB. The speech model downloads on first use: 640 MB (Parakeet), 870 MB (Turbo 8-bit) or 1.6 GB (Turbo).
+
+**Where are my transcripts, and how do I remove Matita?**
+In `~/Documents/Transcripts` (you can change it). To remove Matita, quit it and drag it to the Trash; models are in `~/whisper-models` and settings in `~/whisper-app` if you want those gone too.
+
+**Is it really free?**
+Yes, and open source under the MIT licence. Issues and ideas are welcome in [Discussions](https://github.com/joonkiee/matita-transcriber/discussions).
 
 ## Privacy and security
 

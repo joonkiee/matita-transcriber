@@ -1,0 +1,39 @@
+name: Something isn't working
+description: A bug, a crash, or a transcript that came out wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time. The more of this you fill in, the faster it gets fixed.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Matita version
+      description: At the bottom of the Matita window, e.g. 3.20.0
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: Mac and macOS
+      description: e.g. MacBook Air M2, macOS 15.4
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - The app (.dmg)
+        - Terminal (install.sh)
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: "In Matita: Help → Show Log File, then paste the last 30 lines of matita.log. Check it doesn't contain anything private first."
+      render: text

@@ -288,9 +288,17 @@ def ensure_file(url, dest, on_progress=None, jid=None):
         if jid:
             with LOCK:
                 PROCS[jid] = p                     # so Cancel can stop the download
+        t0, seen = time.time(), []
         while p.poll() is None:
-            if on_progress and total and os.path.exists(part):
-                on_progress(int(min(99, 100 * os.path.getsize(part) / total)))
+            if total and os.path.exists(part):
+                got = os.path.getsize(part)
+                if on_progress:
+                    on_progress(int(min(99, 100 * got / total)))
+                if jid:                             # size, speed and time left for the first-run download
+                    seen = (seen + [(time.time(), got)])[-20:]           # last ~10 s for a steady speed
+                    rate = (seen[-1][1] - seen[0][1]) / max(0.5, seen[-1][0] - seen[0][0]) if len(seen) > 1 else 0
+                    update(jid, dl={"got": got, "total": total,
+                                    "eta": int((total - got) / rate) if rate > 1000 and time.time() - t0 > 3 else None})
             time.sleep(0.5)
         DOWNLOADS.discard(p.pid)
         if jid:
@@ -560,7 +568,7 @@ BATCH = {"done": 0, "failed": 0}
 ACTIVE = ("queued", "downloading", "converting", "transcribing", "speakers")
 PUBLIC_KEYS = ("id", "name", "state", "progress", "error", "created", "started",
                "finished", "lang", "model", "quality", "note", "preview", "duration", "words", "library", "has_srt", "summary",
-               "summary_ai", "speakers", "speaker_count", "warning", "auto_titled", "recorded")
+               "summary_ai", "speakers", "speaker_count", "warning", "auto_titled", "recorded", "dl")
 
 TS_RE = re.compile(r"-->\s*(\d+):(\d+):(\d+)\.(\d+)\]")
 PROG_RE = re.compile(r"progress\s*=\s*(\d+)%")
@@ -2274,7 +2282,7 @@ def _run_job(jid):
                 ensure_file(url, dest, lambda pct: update(jid, progress=pct), jid)
                 if state_of(jid) == "cancelled":
                     return
-        update(jid, state="converting", started=time.time(), progress=0, error=None, note=None, model=model)
+        update(jid, state="converting", started=time.time(), progress=0, error=None, note=None, model=model, dl=None)
         wav = os.path.join(workdir, "audio.wav")
         mix = job.get("mix_src") if job.get("mix_src") and os.path.isfile(job["mix_src"]) else None
         if mix and is_silent(mix):
@@ -6952,7 +6960,12 @@ function renderQueue(now){
       extra = `<div class="bar" style="width:${j.progress||0}%"></div>`;
     }
     if (j.state==="downloading"){
-      icon = I.clock; status = `<span class="s run">${esc(j.note || "Downloading the model")}</span>`;
+      const d = j.dl, mb = n => n >= 1e9 ? (n/1e9).toFixed(1) + " GB" : Math.round(n/1e6) + " MB";
+      const left = d && d.eta != null ? (d.eta < 60 ? "less than a minute left" : `about ${Math.ceil(d.eta/60)} min left`) : "";
+      const sizes = d && d.total ? `${mb(d.got)} of ${mb(d.total)}` : "";
+      const tip = j.lang === "en" && !String(j.model || "").startsWith("parakeet") && /Downloading (Turbo|Large)/.test(j.note || "")
+        ? " · Tip: Parakeet is a smaller, faster download for English" : "";
+      icon = I.clock; status = `<span class="s run">${esc(j.note || "Downloading the model")}${sizes ? " · " + sizes : ""}${left ? " · " + left : ""}${esc(tip)}</span>`;
       acts = `<button data-act="cancel" data-id="${j.id}">Cancel</button>`;
       cell = `<b>${j.progress||0}%</b><span>downloaded</span>`;
       extra = `<div class="bar" style="width:${j.progress||0}%"></div>`;

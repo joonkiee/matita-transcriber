@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/joonkiee/matita-transcriber/discussions
+    about: Ask how to do something, share how you use Matita, or float an idea.
+  - name: macOS says it can't check Matita for malware
+    url: https://github.com/joonkiee/matita-transcriber#faq
+    about: Expected for a free app without a paid Apple Developer ID. The FAQ shows how to open it.
