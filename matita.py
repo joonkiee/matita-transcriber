@@ -37,8 +37,12 @@ import zipfile
 from xml.sax.saxutils import escape as xml_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = "3.19.3"
+VERSION = "3.20.0"
 REPO = "joonkiee/matita-transcriber"   # GitHub "owner/name", used for update checks
+# Set by Matita.app (the downloadable Mac app), which carries its own Python, whisper-cli, ffmpeg and
+# the Matita Audio helper. Without it, Matita runs the older way: a LaunchAgent plus Homebrew tools.
+BUNDLE = os.environ.get("MATITA_APP_BUNDLE") or None
+BUNDLE_BIN = os.path.join(BUNDLE, "Contents", "Resources", "bin") if BUNDLE else None
 NAME = "Matita"
 PORT = 8765
 HOME = os.path.expanduser("~")
@@ -77,7 +81,10 @@ SEG_URL = ("https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segm
 EMB_URL = ("https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/"
            "3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx")
 
-os.environ["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + os.environ.get("PATH", "")
+if BUNDLE:          # the app's own tools first; Homebrew only for extras such as Ollama
+    os.environ["PATH"] = BUNDLE_BIN + ":/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin"
+else:
+    os.environ["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + os.environ.get("PATH", "")
 
 
 def find_bin(*names):
@@ -773,7 +780,7 @@ def install_sherpa(say, log="speakers"):
 
 
 def _install_sherpa(say, log):
-    py = "/usr/bin/python3" if os.path.exists("/usr/bin/python3") else sys.executable
+    py = sys.executable if BUNDLE else ("/usr/bin/python3" if os.path.exists("/usr/bin/python3") else sys.executable)
     healthy = os.path.exists(SPK_PY) and subprocess.run(
         [SPK_PY, "-c", "import sys"], capture_output=True).returncode == 0
     if not healthy:
@@ -893,8 +900,27 @@ def fetch_latest_source():
     return m.group(1), src
 
 
+def latest_release():
+    """(version, page URL, .dmg URL) of the newest Matita.app on GitHub Releases."""
+    r = subprocess.run([CURL, "-fsSL", "--max-time", "30", "-H", "Accept: application/vnd.github+json",
+                        "https://api.github.com/repos/%s/releases/latest" % REPO], capture_output=True)
+    if r.returncode != 0:
+        raise RuntimeError("Couldn't reach GitHub.")
+    d = json.loads(r.stdout.decode("utf-8"))
+    dmg = next((a.get("browser_download_url") for a in d.get("assets") or [] if str(a.get("name", "")).endswith(".dmg")), None)
+    return str(d.get("tag_name") or "").lstrip("v"), d.get("html_url"), dmg
+
+
 def check_update():
     if REPO.startswith("YOUR_" + "GITHUB"):      # not set up for a GitHub repo yet
+        return
+    if BUNDLE:
+        try:
+            latest, page, dmg = latest_release()
+            UPDATE.update(latest=latest or None, page=page, dmg=dmg, checked=time.time(),
+                          available=bool(latest) and parse_version(latest) > parse_version(VERSION))
+        except Exception:
+            UPDATE.update(checked=time.time())
         return
     try:
         latest, _ = fetch_latest_source()
@@ -910,6 +936,11 @@ def update_loop():
 
 
 def apply_update():
+    if BUNDLE:      # the app updates by downloading the new .dmg
+        url = UPDATE.get("dmg") or UPDATE.get("page") or "https://github.com/%s/releases/latest" % REPO
+        subprocess.run(["open", url])
+        task("update", state="done", progress=100, message="Downloading the new Matita. Open it and drag Matita to Applications.")
+        return
     task("update", state="running", progress=10, message="Downloading the new version…")
     try:
         with LOCK:
@@ -2475,6 +2506,8 @@ def vm_dir():
 
 def responsible_app():
     """What the person has to add under Full Disk Access for the app to read Voice Memos."""
+    if BUNDLE:
+        return {"kind": "app", "name": "Matita", "path": BUNDLE}
     if os.environ.get("XPC_SERVICE_NAME") in [LABEL] + OLD_LABELS and (os.environ.get("MATITA_SERVICE_APP")
                                                                     or os.environ.get("TRANSCRIBER_SERVICE_APP")):
         return {"kind": "app", "name": "Matita Service", "path": SERVICE_APP}
@@ -3473,7 +3506,7 @@ class Handler(BaseHTTPRequestHandler):
                 "hidden": len([p for p in hidden_paths() if os.path.exists(p)]),
                 "clock24": mac_clock().get("h24"), "locale": mac_clock().get("locale"),
                 "version": VERSION, "update": dict(UPDATE), "tasks": json.loads(json.dumps(TASKS)),
-                "capture": capture_ready(), "capture_build": dict(CAPTURE_BUILD),
+                "capture": capture_ready(), "capture_build": dict(CAPTURE_BUILD), "app": bool(BUNDLE),
                 "capture_os": sys.platform == "darwin" and mac_version() >= (14, 2),
             })
 
@@ -6122,12 +6155,14 @@ function renderUpdate(fromCheck){
   if (t.state === "error"){ b.hidden = false; $("#bannerText").textContent = "Update failed: " + t.message; $("#bannerGo").hidden = false; $("#bannerGo").textContent = "Try again"; $("#bannerLater").hidden = false; return; }
   const skip = load("skip");
   b.hidden = !(u.available && (fromCheck || skip !== u.latest));
-  $("#bannerGo").hidden = false; $("#bannerLater").hidden = false; $("#bannerGo").textContent = "Update now";
+  $("#bannerGo").hidden = false; $("#bannerLater").hidden = false; $("#bannerGo").textContent = info.app ? "Download" : "Update now";
   if (!b.hidden) $("#bannerText").textContent = `Matita ${u.latest} is available. You have ${info.version}.`;
   else if (fromCheck) toast(u.checked ? (u.latest ? "You have the latest version." : "Couldn't check for updates right now.") : "Update checks aren't set up for this copy.");
 }
 $("#bannerLater").onclick = () => { store("skip", (info.update||{}).latest || ""); $("#banner").hidden = true; };
 $("#bannerGo").onclick = async () => {
+  if (info.app){ await post("/api/update"); $("#banner").hidden = true;
+    return toast("Downloading the new Matita. Open the file and drag Matita to Applications to replace this one."); }
   const target = (info.update||{}).latest; updating = true; await post("/api/update"); renderUpdate();
   const started = Date.now();
   const wait = async () => {
@@ -7856,6 +7891,8 @@ int main(void) {
 
 CAPTURE_APP = os.path.join(APP_DIR, "Matita Audio.app")   # records other apps' sound (calls) for meetings
 CAPTURE_EXE = os.path.join(CAPTURE_APP, "Contents", "MacOS", "Matita Audio")
+if BUNDLE:                                          # Matita.app ships it, signed with the app
+    CAPTURE_EXE = os.path.join(BUNDLE, "Contents", "MacOS", "matita-audio")
 CAPTURE_SWIFT = r"""
 // Matita Audio: records what the Mac plays (Zoom, Teams, Meet in a browser...) with a Core Audio
 // process tap (macOS 14.2+), so a recorded meeting has the other people as well as your microphone.
@@ -8012,6 +8049,8 @@ def build_capture_app():
     Rebuilt only when the source changes, so the recording permission survives reinstalls."""
     if sys.platform != "darwin" or mac_version() < (14, 2):
         return None
+    if BUNDLE:
+        return CAPTURE_EXE if os.access(CAPTURE_EXE, os.X_OK) else None
     stamp = hashlib.sha256(CAPTURE_SWIFT.encode("utf-8")).hexdigest()
     stamp_file = os.path.join(CAPTURE_APP, "Contents", "Resources", "source.sha256")
     try:
@@ -8085,14 +8124,18 @@ def _cap_status(path):
 
 def capture_start():
     if not capture_ready():
-        raise ValueError("Recording other apps' sound isn't available on this Mac.")
+        raise ValueError("Recording other apps' sound needs macOS 14.2 or later.")
     os.makedirs(CAP_DIR, exist_ok=True)
     token = uuid.uuid4().hex[:12]
     path = os.path.join(CAP_DIR, token + ".m4a")
     open(path + ".alive", "w").close()
-    r = subprocess.run(["open", "-n", "-g", "-a", CAPTURE_APP, "--args", path], capture_output=True, text=True)
-    if r.returncode != 0:
-        raise ValueError("Couldn't start Matita Audio. " + (r.stderr or "").strip()[-200:])
+    if BUNDLE:      # a child of Matita.app, so macOS asks on behalf of Matita
+        subprocess.Popen([CAPTURE_EXE, path], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    else:
+        r = subprocess.run(["open", "-n", "-g", "-a", CAPTURE_APP, "--args", path], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise ValueError("Couldn't start Matita Audio. " + (r.stderr or "").strip()[-200:])
     for _ in range(60):                             # the first time, macOS may be showing a permission prompt
         lines = _cap_status(path)
         err = next((x[6:] for x in lines if x.startswith("error ")), None)
@@ -8378,8 +8421,33 @@ def uninstall():
         print("To also remove the lid-closed permission, run:  sudo rm -f " + " ".join(rules))
 
 
+def retire_agent():
+    """First start of Matita.app on a Mac that had the older install: stop and remove the background
+    service and its launchers (your transcripts, settings and models stay where they are)."""
+    if not (BUNDLE and os.path.isfile(AGENT_PLIST)):
+        return
+    try:
+        stop_agent()
+        os.remove(AGENT_PLIST)
+    except OSError:
+        pass
+    for path in APP_COPIES + [SERVICE_APP]:
+        try:
+            with open(os.path.join(path, "Contents", "Info.plist"), "rb") as fh:
+                ours = str(plistlib.load(fh).get("CFBundleIdentifier", "")).startswith(LABEL)
+        except Exception:
+            ours = False
+        if ours and os.path.abspath(path) != os.path.abspath(BUNDLE):
+            shutil.rmtree(path, ignore_errors=True)
+    for _ in range(40):                             # give the old server a moment to let go of the port
+        if not port_in_use():
+            break
+        time.sleep(0.25)
+
+
 def serve(open_browser):
     global OUT_DIR
+    retire_agent()
     if port_in_use():
         if open_browser:
             print("Matita is already running. Opening it in your browser.")
@@ -8453,6 +8521,12 @@ def main():
         return parakeet_main(sys.argv[i + 1], sys.argv[i + 2], int(sys.argv[i + 3]))
     if "--setup-speakers" in sys.argv:
         sys.exit(0 if setup_speakers(echo=True) else 1)
+    if "--print-capture-swift" in sys.argv:        # used by the app build
+        return sys.stdout.write(CAPTURE_SWIFT)
+    if "--write-icon" in sys.argv:
+        with open(sys.argv[sys.argv.index("--write-icon") + 1], "wb") as fh:
+            fh.write(base64.b64decode(ICON_B64))
+        return
     if "--version" in sys.argv:
         return print(VERSION)
     if "--install" in sys.argv:

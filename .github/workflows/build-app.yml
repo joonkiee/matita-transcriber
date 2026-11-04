@@ -1,0 +1,72 @@
+name: Build Matita.app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [app]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14            # Apple Silicon
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache tools (whisper.cpp, ffmpeg, Python)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build/whisper
+            .build/ffmpeg
+            .build/python
+          key: tools-v1-whisper-v1.9.5-ffmpeg-7.1.1-py3.12
+
+      - name: Build the app and the disk image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/build-app.sh
+
+      - name: Smoke test on this Mac
+        run: |
+          set -euo pipefail
+          APP=dist/Matita.app; R=$APP/Contents/Resources
+          export HOME=$RUNNER_TEMP/home; mkdir -p "$HOME"
+          echo "-- tools"
+          "$R/bin/ffmpeg" -hide_banner -version | head -1
+          "$R/bin/whisper-cli" --help 2>&1 | grep -q -- "--vad" && echo "whisper-cli has VAD"
+          echo "-- a real transcription with the bundled whisper-cli + ffmpeg"
+          say -o "$RUNNER_TEMP/t.aiff" "Matita turns your recordings into text on your Mac."
+          "$R/bin/ffmpeg" -nostdin -loglevel error -y -i "$RUNNER_TEMP/t.aiff" -ar 16000 -ac 1 -c:a pcm_s16le "$RUNNER_TEMP/t.wav"
+          curl -fsSL -o "$RUNNER_TEMP/tiny.bin" https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin
+          "$R/bin/whisper-cli" -m "$RUNNER_TEMP/tiny.bin" -f "$RUNNER_TEMP/t.wav" -nt 2>/dev/null | tee "$RUNNER_TEMP/out.txt"
+          grep -qi "recordings" "$RUNNER_TEMP/out.txt"
+          echo "-- the server inside the app"
+          MATITA_APP_BUNDLE=$PWD/$APP "$R/python/bin/python3" "$R/matita.py" --serve > "$RUNNER_TEMP/server.log" 2>&1 &
+          for i in $(seq 1 60); do curl -fs http://127.0.0.1:8765/api/info > "$RUNNER_TEMP/info.json" && break; sleep 0.5; done
+          python3 -c "import json;d=json.load(open('$RUNNER_TEMP/info.json'));print({k:d[k] for k in ('version','app','whisper','ffmpeg','capture')});assert d['app'] and d['whisper'] and d['ffmpeg']"
+          echo "-- a venv from the bundled Python (speaker identification and Parakeet use one)"
+          "$R/python/bin/python3" -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/python" -m pip install -q sherpa-onnx==2.0.1 numpy
+          "$RUNNER_TEMP/venv/bin/python" -c "import sherpa_onnx; print('sherpa-onnx', sherpa_onnx.__version__)"
+          echo "-- Matita Audio starts (no recording permission on CI, so an error or silence is fine)"
+          "$APP/Contents/MacOS/matita-audio" "$RUNNER_TEMP/cap.m4a" & CP=$!; sleep 3; touch "$RUNNER_TEMP/cap.m4a.stop"; sleep 2; kill $CP 2>/dev/null || true
+          cat "$RUNNER_TEMP/cap.m4a.status" 2>/dev/null || echo "(no status file)"
+          kill %1 2>/dev/null || true
+          tail -5 "$RUNNER_TEMP/server.log"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Matita-dmg
+          path: dist/*.dmg
+          if-no-files-found: error
+
+      - name: Attach to the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          generate_release_notes: true
