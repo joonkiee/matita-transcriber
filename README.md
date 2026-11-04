@@ -34,29 +34,31 @@
 - **Names recordings for you (optional).** With AI assist on, each summary comes with three title ideas, like `2025-10-31 2pm Quarterly revenue review`. Pick one, or let Matita rename "New Recording 23"-style files on its own. You decide the format.
 - **Keyboard-first.** `⌘K` searches every transcript and runs any command; `⌘O` adds files.
 - **Save it the way you need it.** Word (.docx), Markdown for Notion and Obsidian, plain text, or subtitles (.srt).
-- **Guides you through setup and keeps itself up to date.** If something's missing, the app tells you what to do, and offers one-click updates when a new version is out.
+- **Guides you through setup and keeps itself up to date.** If something's missing, the app tells you what to do, and tells you when a new version is out.
 
 ## Install
 
-You need a Mac (Apple Silicon recommended) and about 3 GB of free space.
+You need a Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later.
 
-Open **Terminal** (press `Cmd + Space`, type *Terminal*, press Enter), paste this line, and press Enter:
+1. Download **Matita-x.y.z.dmg** from the [latest release](https://github.com/joonkiee/matita-transcriber/releases/latest).
+2. Open it and drag **Matita** into **Applications**.
+3. Open Matita. Because the app isn't signed with an Apple Developer ID yet, macOS stops it the first time:
+   click **Done**, then open **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to Matita. You only do this once.
+
+Everything Matita needs is inside the app: its own Python, whisper.cpp (with Metal), ffmpeg and the call-recording helper. Nothing else is installed. The speech model (about 1.6 GB) downloads the first time you transcribe, into `~/whisper-models`.
+
+Matita keeps working while its window is closed (watch folders, Voice Memos). Quit it from the menu bar (**Matita → Quit**, `⌘Q`), and turn on **Matita → Open at Login** if you want it running all the time.
+
+> **Already used the Terminal version?** The first time you open the app it switches over by itself: it stops the old background service and removes its launchers. Your transcripts, settings and downloaded models stay where they are.
+
+<details><summary>Terminal install (the older way, without the app)</summary>
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joonkiee/matita-transcriber/main/install.sh | bash
 ```
 
-The installer:
-
-1. Installs [Homebrew](https://brew.sh) if you don't have it (it will ask for your Mac password).
-2. Installs `whisper-cpp` and `ffmpeg`.
-3. Downloads the speech model (`large-v3-turbo`, about 1.6 GB) into `~/whisper-models`.
-4. Sets up speaker identification (about 60 MB). Skip it with `MATITA_SPEAKERS=0` before `bash`; you can turn it on later in the app.
-5. Sets Matita to run quietly in the background (no Terminal window needed) and puts a **Matita** app on your Desktop and in Applications.
-
-When it's done, Matita opens in your browser. That's the last time you'll need Terminal.
-
-> **Tip:** Drag **Matita** from your Desktop into the Dock. If you use Chrome, Edge or Brave, it opens in its own window without tabs or an address bar.
+This installs Homebrew, `whisper-cpp` and `ffmpeg`, downloads the model, and runs Matita as a background service that opens in your browser.
+</details>
 
 ## Use it
 
@@ -239,8 +241,11 @@ cd matita-transcriber
 
 ## Releasing a new version (for maintainers)
 
-1. Raise `VERSION` near the top of `matita.py` (e.g. `1.1.0` → `1.2.0`).
-2. Commit and push to `main`. Everyone's app will offer the update within 12 hours.
+1. Raise `VERSION` near the top of `matita.py` (e.g. `3.20.0` → `3.21.0`).
+2. Commit and push to `main`, then tag it: `git tag v3.21.0 && git push origin v3.21.0`.
+3. GitHub Actions ([`build-app.yml`](.github/workflows/build-app.yml)) builds `Matita-3.21.0.dmg` on an Apple Silicon runner, tests it, and attaches it to the release. Apps already installed show **Download** within 12 hours. (The Terminal version updates itself from `main`.)
+
+To build the app yourself on a Mac: `bash scripts/build-app.sh` (needs the Xcode Command Line Tools and `cmake`).
 
 ## Privacy and security
 
