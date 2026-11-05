@@ -37,7 +37,7 @@ import zipfile
 from xml.sax.saxutils import escape as xml_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = "3.20.0"
+VERSION = "3.21.0"
 REPO = "joonkiee/matita-transcriber"   # GitHub "owner/name", used for update checks
 # Set by Matita.app (the downloadable Mac app), which carries its own Python, whisper-cli, ffmpeg and
 # the Matita Audio helper. Without it, Matita runs the older way: a LaunchAgent plus Homebrew tools.
@@ -4759,6 +4759,18 @@ body.dragging .drop.compact .chiprow{justify-content:center;margin-top:18px}
 .menu button:hover:not(:disabled) svg,.menu button:focus-visible svg{color:#fff}
 .menu button:disabled{opacity:.4;cursor:default}
 
+/* speakers view: a share-of-talk bar, then each person's lines together */
+.spkview{max-width:calc(66ch + 82px)}
+.sbar{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;margin:18px 0 4px}
+.sbar span{min-width:3px}
+.sgrp{margin-top:22px;padding:14px 16px 12px;border-radius:14px;background:color-mix(in srgb,var(--c) 7%,transparent);border-left:3px solid var(--c)}
+.sgh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.sgh .av{width:22px;height:22px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font:700 10px/1 var(--ui,-apple-system),sans-serif;flex:none}
+.sgh .nm{background:none;border:0;padding:0;font:600 14px var(--ui,-apple-system),sans-serif;cursor:pointer;color:var(--c)}
+.sgh .nm:hover{text-decoration:underline;text-underline-offset:3px}
+.sgh input{font:600 14px var(--ui,-apple-system),sans-serif;padding:3px 8px;min-height:0;width:180px;border-radius:8px}
+.sgm{font-size:12px;color:var(--soft)}
+.sgrp .line{margin-top:6px}
 /* reading column: ~65 characters, centred in the sheet */
 .d-body{font-size:16px}
 .d-body .text{max-width:66ch;font-size:16px;line-height:1.7;text-wrap:pretty}
@@ -4769,7 +4781,7 @@ body.dragging .drop.compact .chiprow{justify-content:center;margin-top:18px}
 .turn{max-width:calc(66ch + 32px);margin-top:26px}
 .turn:first-child{margin-top:18px}
 .turn .who{align-items:center;margin-bottom:4px}
-.turn .tx{padding-left:32px;line-height:1.7;text-wrap:pretty}
+.turn .tx{margin-left:10px;padding-left:20px;border-left:2px solid color-mix(in srgb,var(--c) 45%,transparent);line-height:1.7;text-wrap:pretty}
 .turn .tt{font-variant-numeric:tabular-nums}
 
 /* focus: one soft green ring everywhere, never Chrome's blue */
@@ -5744,8 +5756,8 @@ body:not(.dragging) .drop.compact .dzmark svg{width:24px;height:24px}
       <div class="d-bar">
         <div class="seg" role="group" aria-label="View">
           <button id="vAI" aria-pressed="false" hidden>AI summary</button>
-          <button id="vTime" aria-pressed="false">Timestamps</button>
-          <button id="vPlain" aria-pressed="true">Text</button>
+          <button id="vTime" aria-pressed="true">Transcript</button>
+          <button id="vSpk" aria-pressed="false" hidden>Speakers</button>
         </div>
         <input type="search" id="rFind" placeholder="Find in transcript" aria-label="Find in transcript">
         <span class="hits" id="rHits"></span>
@@ -5984,7 +5996,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const AUDIO = /\.(m4a|mp3|wav|aac|flac|ogg|opus|mp4|mov|m4v|qta|caf|aif|aiff|webm|wma|amr)$/i;
 const post = (url, data) => fetch(url, {method:"POST", body: JSON.stringify(data || {}), headers: {"X-Transcriber": "1"}});
-let jobs = [], info = null, uploading = {done:0,total:0}, timer = null, current = null, view = "plain";
+let jobs = [], info = null, uploading = {done:0,total:0}, timer = null, current = null, view = "time";
 
 function store(k, v){ try{ localStorage.setItem("stt."+k, v); }catch(e){} }
 function load(k){ try{ return localStorage.getItem("stt."+k); }catch(e){ return null; } }
@@ -6657,7 +6669,7 @@ function refreshAIButtons(){
   const on = aiOn();
   $("#aiSum").hidden = true;                     // the summary is a view now (first tab)
   $("#aiFix").hidden = !on; $("#vAI").hidden = !on;
-  if (!on && view === "ai" && $("#reader").open) setView(doc && (doc.segments.length || doc.turns) ? "time" : "plain");
+  if (!on && view === "ai" && $("#reader").open) setView("time");
 }
 /* the AI summary view */
 const aiAuto = new Set();
@@ -6670,7 +6682,7 @@ function aiViewHTML(){
   const busy = (msg, more) => `<div class="aiview"><div class="busy"><span class="spin"></span>${esc(msg)}…</div>${more ? `<p class="hint">${more}</p>` : ""}</div>`;
   if (!d) return busy("Loading");
   const running = d.run && !d.run.done && d.run.kind === "summary";
-  if (running) return busy(d.run.progress || "Writing the summary", "Long recordings take a minute or two. You can read the Text or Timestamps meanwhile.");
+  if (running) return busy(d.run.progress || "Writing the summary", "Long recordings take a minute or two. You can read the transcript meanwhile.");
   if (d.summary){
     const ideas = titleIdeas(), now = current ? bare(current.name) : "";
     const sug = ideas.length && (aiInfo && aiInfo.titles) !== "off"
@@ -7334,14 +7346,13 @@ function drawReader(){
   if (!doc) return;
   let html; hits = 0;
   if (view === "ai") html = aiViewHTML();
+  else if (doc.turns && view === "spk") html = speakersHTML();
   else if (doc.turns){
-    const cols = ["#2f7a3b","#0a64c2","#b25000","#7a3db8","#c2338a","#5e6355","#00838f","#8d6e00"];
     const starts = doc.turns.map(t => t.s);
-    var marked = (text, s, i) => markUnsure(text, s, starts[i+1]);
-    html = doc.turns.map((t, i) => `<div class="turn"${view==="time" && t.s!=null ? ` data-s="${t.s}"` : ""} style="--c:${SPK[(t.speaker-1)%SPK.length]}"><div class="who">
-      <span class="av" aria-hidden="true">${esc(initials(t.name, t.speaker))}</span><button class="nm" data-spk="${t.speaker}" title="Rename">${esc(t.name)}</button>${view==="time" ? `<span class="tt">${esc(t.t.replace(/^00:/,""))}</span>` : ""}</div>
-      <div class="tx">${view==="time" ? marked(t.text, t.s, i) : hl(t.text)}</div>${view==="time" ? `<button class="ed" data-ed="${i}">Edit</button>` : ""}</div>`).join("");
-  } else if (view==="time" && doc.segments.length){
+    html = doc.turns.map((t, i) => `<div class="turn"${t.s!=null ? ` data-s="${t.s}"` : ""} style="--c:${SPK[(t.speaker-1)%SPK.length]}"><div class="who">
+      <span class="av" aria-hidden="true">${esc(initials(t.name, t.speaker))}</span><button class="nm" data-spk="${t.speaker}" title="Rename">${esc(t.name)}</button><span class="tt">${esc(t.t.replace(/^00:/,""))}</span></div>
+      <div class="tx">${markUnsure(t.text, t.s, starts[i+1])}</div><button class="ed" data-ed="${i}">Edit</button></div>`).join("");
+  } else if (doc.segments.length){
     html = doc.segments.map((s, i) => `<div class="line" data-s="${s.s||0}"><span class="ts">${esc(s.t.replace(/^00:/,""))}</span><span class="tx">${markUnsure(s.text, s.s, (doc.segments[i+1]||{}).s)}</span><button class="ed" data-ed="${i}">Edit</button></div>`).join("");
   } else {
     const paras = doc.text.split(/\n+/).map(p=>p.trim()).filter(Boolean);
@@ -7349,7 +7360,7 @@ function drawReader(){
   }
   const term = $("#rFind").value.trim();
   $("#rBody").innerHTML = html;
-  const canPlay = !!doc.audio && view==="time";
+  const canPlay = !!doc.audio && view !== "ai";
   $("#rBody").classList.toggle("playable", canPlay);
   $("#rPlayer").hidden = !doc.audio;
   $("#pPlay").disabled = !doc.audio;
@@ -7360,6 +7371,28 @@ function drawReader(){
   lastRow = null; markPlaying();
   $("#rHits").textContent = term ? (hits ? plural(hits,"match","matches") : "No matches") : "";
   const first = $("#rBody mark"); if (first) first.scrollIntoView({block:"center"});
+}
+/* everything each person said, one person at a time, with how much of the talking was theirs */
+function speakersHTML(){
+  const T = doc.turns, end = wave.duration || (current && current.duration) || 0;
+  const by = new Map();
+  T.forEach((t, i) => {
+    const next = i + 1 < T.length ? T[i + 1].s : end;
+    const len = t.s != null && next != null ? Math.max(0, next - t.s) : 0;
+    if (!by.has(t.speaker)) by.set(t.speaker, {speaker: t.speaker, name: t.name, idx: [], secs: 0});
+    const g = by.get(t.speaker); g.idx.push(i); g.secs += len;
+  });
+  const groups = [...by.values()].sort((a, b) => b.secs - a.secs || a.speaker - b.speaker);
+  const total = groups.reduce((n, g) => n + g.secs, 0) || 1;
+  const col = g => SPK[(g.speaker - 1) % SPK.length];
+  const pct = g => Math.round(100 * g.secs / total);
+  const bar = `<div class="sbar" aria-hidden="true">${groups.map(g => `<span style="flex:${g.secs || 1};background:${col(g)}"></span>`).join("")}</div>`;
+  const starts = T.map(t => t.s);
+  return `<div class="spkview">${bar}` + groups.map(g => `<section class="sgrp" style="--c:${col(g)}">
+    <div class="sgh"><span class="av" aria-hidden="true">${esc(initials(g.name, g.speaker))}</span><button class="nm" data-spk="${g.speaker}" title="Rename">${esc(g.name)}</button>
+      <span class="sgm">${pct(g)}% of the talking · ${plural(g.idx.length, "turn")}${g.secs ? " · " + clock(g.secs) : ""}</span></div>
+    ${g.idx.map(i => { const t = T[i]; return `<div class="line"${t.s != null ? ` data-s="${t.s}"` : ""}><span class="ts">${esc((t.t || "").replace(/^00:/, ""))}</span><span class="tx">${markUnsure(t.text, t.s, starts[i+1])}</span><button class="ed" data-ed="${i}">Edit</button></div>`; }).join("")}
+  </section>`).join("") + `</div>`;
 }
 let readerSeq = 0;
 async function openReader(id, opts){
@@ -7392,10 +7425,10 @@ async function openReader(id, opts){
   const dup = !!ns && (nt.length < ns.length * 3 || nt.slice(0, ns.length + 40).includes(ns.slice(0, 120)));   // short, or just the opening
   $("#rSum").textContent = doc.summary || ""; $("#rSum").hidden = !doc.summary || dup;
   $("#rKeys").innerHTML = (doc.keywords||[]).map(k => `<span class="chip">${esc(k)}</span>`).join("");
-  $("#vTime").disabled = !doc.segments.length && !doc.turns;
-  const canTime = !!(doc.segments.length || doc.turns);
+  const many = !!(doc.turns && new Set(doc.turns.map(t => t.speaker)).size > 1);
+  $("#vSpk").hidden = !many;
   $("#rFind").value = (opts && opts.term) || "";
-  setView(opts && opts.at != null && canTime ? "time" : opts && opts.term ? "plain" : aiOn() ? "ai" : (load("view")==="time" && canTime ? "time" : "plain"));
+  setView(opts && (opts.at != null || opts.term) ? "time" : aiOn() ? "ai" : (load("view")==="spk" && many ? "spk" : "time"));
   $("#reader").showModal();
   if (opts && opts.rename) startRename();
   if (opts && opts.at != null){
@@ -7405,7 +7438,7 @@ async function openReader(id, opts){
   } else if (!(opts && opts.term)) $("#rBody").scrollTop = 0;
 }
 function setView(v){ view = v; if (v !== "ai") store("view", v);
-  $("#vPlain").setAttribute("aria-pressed", v==="plain"); $("#vTime").setAttribute("aria-pressed", v==="time"); $("#vAI").setAttribute("aria-pressed", v==="ai");
+  $("#vSpk").setAttribute("aria-pressed", v==="spk"); $("#vTime").setAttribute("aria-pressed", v==="time"); $("#vAI").setAttribute("aria-pressed", v==="ai");
   drawReader(); if (v === "ai") ensureSummary(); }
 /* playback in the timestamps view */
 const audio = new Audio(); audio.preload = "none";
@@ -7524,7 +7557,7 @@ $("#rBody").addEventListener("click", e => {
       try{ doc = await getText(current.id); }catch(err){}
     }
     editing = null; drawReader();
-    const again = document.querySelectorAll("#rBody [data-s]")[i]; if (again) again.classList.add("flash");
+    const again = document.querySelector(`#rBody .ed[data-ed="${i}"]`); if (again && again.closest("[data-s]")) again.closest("[data-s]").classList.add("flash");
   };
   bar.querySelector(".btn").onclick = () => done(true);
   bar.querySelector(".link").onclick = () => done(false);
@@ -7624,13 +7657,13 @@ $("#textHits").addEventListener("click", e => {
   openReader(b.dataset.id, {at: b.dataset.s === "" ? null : +b.dataset.s, term: $("#filter").value.trim()});
 });
 
-$("#vPlain").onclick = () => okToLeaveEdit() && setView("plain");
+$("#vSpk").onclick = () => okToLeaveEdit() && setView("spk");
 $("#vTime").onclick = () => okToLeaveEdit() && setView("time");
 $("#vAI").onclick = () => okToLeaveEdit() && setView("ai");
-$("#rFind").addEventListener("input", () => { if (editing) return; if (view === "ai" && $("#rFind").value.trim()) setView("plain"); else drawReader(); });
+$("#rFind").addEventListener("input", () => { if (editing) return; if (view === "ai" && $("#rFind").value.trim()) setView("time"); else drawReader(); });
 $("#rClose").onclick = () => okToLeaveEdit() && $("#reader").close();
 $("#reader").addEventListener("close", () => { editing = null; current = null; });
-$("#rCopy").onclick = () => current && copyText(current.id, view==="time");
+$("#rCopy").onclick = () => current && copyText(current.id, false);
 $("#rSave").onclick = () => current && pickFormat(current.id);
 $("#rBody").addEventListener("click", e => {
   const b = e.target.closest(".nm"); if (!b || !current) return;
