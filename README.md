@@ -5,13 +5,14 @@
 <h1 align="center">Matita Transcriber</h1>
 
 <p align="center">
-  <b>Turn lectures, interviews, meetings and calls into text, summaries and notes. Entirely on your Mac, for free.</b><br>
+  <b>A free, offline transcription app for Mac. Turn lectures, interviews, meetings, calls and iPhone Voice Memos into text, summaries and notes with Whisper, entirely on your Mac.</b><br>
   <i>Matita</i> is Italian for "pencil": it listens to your recordings and writes them down.
 </p>
 
 <p align="center">
   <a href="https://github.com/joonkiee/matita-transcriber/releases/latest"><b>⬇ Download for Mac</b></a> ·
   <a href="https://joonkiee.github.io/matita-transcriber/">Website</a> ·
+  <a href="https://joonkiee.github.io/matita-transcriber/ko/">한국어</a> ·
   Apple Silicon · macOS 14+ · MIT licence
 </p>
 

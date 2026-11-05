@@ -1,0 +1,100 @@
+/* Shared styles for Matita's guide and comparison pages (the home page carries its own). */
+@font-face{font-family:"Geist";src:url(fonts/geist-latin-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Matita Logo";src:url(fonts/montserrat-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
+
+:root{
+  --page:#ffffff; --card:#f6f6f7; --ink:#111211; --soft:#5f625f; --faint:#9a9c9a; --line:#e8e8ea;
+  --dark:#111211; --on-dark:#f4f4f4; --on-dark-soft:#a3a6a3;
+  --green:#1f4d35; --mint:#a6e8ae; --hl:#d9f3dc; --link:#1f6b45;
+  --hero:linear-gradient(180deg,#e6f1ef 0%,#eef0fb 60%,#fbf8f6 100%);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0e0f0e; --card:#181a18; --ink:#f1f2f0; --soft:#a3a6a2; --faint:#717470; --line:#262826;
+  --dark:#f1f2f0; --on-dark:#111211; --on-dark-soft:#5f625f; --hl:#1e3a26; --link:#8fdc9f;
+  --hero:linear-gradient(180deg,#132019 0%,#15172a 60%,#0e0f0e 100%);
+}}
+:root[data-theme="dark"]{
+  --page:#0e0f0e; --card:#181a18; --ink:#f1f2f0; --soft:#a3a6a2; --faint:#717470; --line:#262826;
+  --dark:#f1f2f0; --on-dark:#111211; --on-dark-soft:#5f625f; --hl:#1e3a26; --link:#8fdc9f;
+  --hero:linear-gradient(180deg,#132019 0%,#15172a 60%,#0e0f0e 100%);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:16px/1.65 Geist,-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-underline-offset:3px}
+img{max-width:100%;height:auto;display:block}
+.w{max-width:1160px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-weight:500;letter-spacing:-.035em;line-height:1.15}
+
+.top{margin:12px;border-radius:28px;background:var(--hero);padding-bottom:56px}
+nav{display:flex;align-items:center;gap:16px;height:76px}
+.brand{display:flex;align-items:center;gap:9px;font:600 17px/1 "Matita Logo",Montserrat,Geist,sans-serif;color:var(--ink);text-decoration:none;flex:1}
+.brand svg{width:26px;height:26px}
+nav .links{display:flex;gap:18px;font-size:13.5px}
+nav .links a{color:var(--soft);text-decoration:none}
+nav .links a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;font:500 14px/1 Geist,sans-serif;padding:0 18px;height:40px;text-decoration:none;white-space:nowrap}
+.btn.dark{background:var(--dark);color:var(--on-dark)}
+.btn.dark:hover{opacity:.86}
+.btn.plain{background:var(--card);color:var(--ink)}
+.crumb{font-size:13px;color:var(--soft);margin-top:40px}
+.crumb a{color:var(--soft)}
+.top h1{font-size:clamp(34px,5vw,56px);margin:14px 0 0;max-width:820px}
+.top .lead{font-size:18px;color:var(--soft);max-width:680px;margin:18px 0 0}
+.top .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+
+article{max-width:740px;margin:0 auto;padding:56px 24px 0}
+article h2{font-size:28px;margin:52px 0 12px}
+article h3{font-size:19px;margin:30px 0 6px;letter-spacing:-.02em}
+article p,article li{color:var(--ink)}
+article p{margin:12px 0}
+article ul,article ol{padding-left:22px}
+article li{margin:6px 0}
+article .muted{color:var(--soft)}
+article figure{margin:28px 0}
+article figure img{border-radius:14px;box-shadow:0 20px 50px -30px rgba(0,0,0,.4),0 0 0 1px var(--line)}
+article figcaption{font-size:13.5px;color:var(--soft);margin-top:10px}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;position:relative;padding:14px 0 14px 46px;border-top:1px solid var(--line);margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:13px;width:28px;height:28px;border-radius:50%;background:var(--dark);color:var(--on-dark);display:grid;place-items:center;font-size:13px;font-weight:600}
+.steps li b{font-weight:600}
+.list{list-style:none;padding:0}
+.list li{padding:16px 0;border-top:1px solid var(--line);margin:0}
+.list a{text-decoration:none;font-size:17px}
+.box{background:var(--card);border-radius:18px;padding:18px 22px;margin:22px 0}
+.box p{margin:6px 0}
+code,kbd{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card);padding:2px 6px;border-radius:6px}
+.tbl{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:22px 0}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;font-size:14.5px;line-height:1.45}
+thead th{font-weight:500;color:var(--soft)}
+tbody tr{border-top:1px solid var(--line)}
+tbody th{font-weight:400;color:var(--soft);width:30%}
+td.mc,th.mc{background:var(--card);font-weight:500;color:var(--ink)}
+.note{font-size:12.5px;color:var(--faint)}
+.note a{color:var(--faint)}
+
+.end{max-width:740px;margin:64px auto 0;padding:0 24px}
+.end .in{background:var(--dark);color:var(--on-dark);border-radius:24px;padding:34px 30px}
+.end h2{margin:0;font-size:28px}
+.end p{color:var(--on-dark-soft);margin:8px 0 20px}
+.end .btn.dark{background:var(--on-dark);color:var(--dark)}
+.related{max-width:740px;margin:40px auto 0;padding:0 24px}
+.related h2{font-size:15px;font-weight:500;color:var(--soft);letter-spacing:0;margin:0 0 10px}
+.related ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.related a{text-decoration:none;font-weight:500}
+footer .w{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:56px;padding-bottom:28px;font-size:12.5px;color:var(--faint)}
+footer a{color:var(--faint)}
+
+@media (max-width:760px){
+  nav .links{display:none}
+  th,td{padding:10px;font-size:13.5px}
+  .w{padding:0 16px}
+  .top{margin:8px;border-radius:22px;padding-bottom:40px}
+  article{padding:40px 16px 0}
+  .end,.related{padding:0 16px}
+}
+
+/* Korean: no breaks inside words, looser headings */
+:lang(ko) body{word-break:keep-all}
+:lang(ko) h1,:lang(ko) h2,:lang(ko) h3{letter-spacing:-.015em}

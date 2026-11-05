@@ -3,13 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Matita · Transcription on your Mac</title>
-<meta name="description" content="Transcripts, summaries and notes from meetings, lectures and the recordings you already have. Runs on your Mac. Free and open source.">
+<title>Matita · Free offline transcription app for Mac</title>
+<meta name="description" content="Free, open-source transcription app for Mac. Turn meetings, lectures, calls and Voice Memos into transcripts, summaries and notes, offline with Whisper. No account.">
+<link rel="canonical" href="https://joonkiee.github.io/matita-transcriber/">
+<link rel="alternate" hreflang="en" href="https://joonkiee.github.io/matita-transcriber/">
+<link rel="alternate" hreflang="ko" href="https://joonkiee.github.io/matita-transcriber/ko/">
+<link rel="alternate" hreflang="x-default" href="https://joonkiee.github.io/matita-transcriber/">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e0f0e" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="Matita · Transcription on your Mac">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Matita">
+<meta property="og:url" content="https://joonkiee.github.io/matita-transcriber/">
+<meta property="og:title" content="Matita · Free offline transcription app for Mac">
 <meta property="og:description" content="Transcripts, summaries and notes from your recordings. Runs on your Mac. Free and open source.">
-<meta property="og:image" content="https://joonkiee.github.io/matita-transcriber/site/main-light.webp">
+<meta property="og:image" content="https://joonkiee.github.io/matita-transcriber/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Matita", "alternateName": "Matita Transcriber", "description": "Free, open-source transcription app for Mac. Transcribes meetings, lectures, calls, iPhone Voice Memos and audio files on your Mac with Whisper and Parakeet, with speaker names, AI summaries and Obsidian notes.", "applicationCategory": "BusinessApplication", "applicationSubCategory": "Transcription", "operatingSystem": "macOS 14 or later (Apple Silicon)", "url": "https://joonkiee.github.io/matita-transcriber/", "downloadUrl": "https://github.com/joonkiee/matita-transcriber/releases/latest", "image": "https://joonkiee.github.io/matita-transcriber/og.png", "screenshot": "https://joonkiee.github.io/matita-transcriber/site/main-light.webp", "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "featureList": ["Offline transcription on your Mac", "Whisper large-v3-turbo and NVIDIA Parakeet", "Speaker identification", "Record Zoom, Teams and Meet calls without a bot", "iPhone Voice Memos", "Watch folders", "AI summaries with Ollama or Claude", "Export to TXT, SRT, Word, Markdown and Obsidian"], "author": {"@type": "Person", "name": "Jun Ki Shin", "url": "https://github.com/joonkiee"}, "sameAs": ["https://github.com/joonkiee/matita-transcriber"]}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does anything leave my Mac?", "acceptedAnswer": {"@type": "Answer", "text": "Your audio and transcripts don't. Matita goes online to download a speech model the first time, to check GitHub for a new version, and, only if you choose Claude for summaries, to send the transcript to Anthropic."}}, {"@type": "Question", "name": "How much space does it need?", "acceptedAnswer": {"@type": "Answer", "text": "About 100 MB for the app, plus one speech model on first use: 640 MB (Parakeet), 870 MB (Turbo 8-bit) or 1.6 GB (Turbo)."}}, {"@type": "Question", "name": "Does it run on Intel Macs or Windows?", "acceptedAnswer": {"@type": "Answer", "text": "No. Matita needs a Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later. Recording the sound of other apps needs macOS 14.2."}}, {"@type": "Question", "name": "Why does macOS warn me the first time?", "acceptedAnswer": {"@type": "Answer", "text": "macOS shows that warning for any app that isn't signed with a paid Developer ID. Matita's source is public, and each version is built from it on GitHub."}}]}]</script>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="preload" href="fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -173,6 +183,7 @@ details a{text-decoration:underline;text-underline-offset:2px}
 .end .btn.plain{background:color-mix(in srgb,var(--on-dark) 10%,transparent);color:var(--on-dark)}
 .end .fine{color:var(--on-dark-soft)}
 footer .w{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:18px;padding-bottom:28px;font-size:12.5px;color:var(--faint)}
+footer .more{flex-basis:100%;display:block}
 footer a:hover{color:var(--ink)}
 
 /* download sheet */
@@ -232,7 +243,7 @@ dialog::backdrop{background:rgba(15,15,20,.35);backdrop-filter:blur(6px);-webkit
   <div class="w">
     <nav>
       <a class="brand" href="#top"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>Matita</a>
-      <div class="links"><a href="#features">Features</a><a href="#compare">Compare</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
+      <div class="links"><a href="#features">Features</a><a href="#compare">Compare</a><a href="#install">Install</a><a href="#faq">FAQ</a><a href="guides/">Guides</a><a href="ko/" lang="ko">한국어</a></div>
       <div class="navr"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest">Download</a><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">GitHub</a></div>
     </nav>
 
@@ -374,6 +385,7 @@ dialog::backdrop{background:rgba(15,15,20,.35);backdrop-filter:blur(6px);-webkit
 </div>
 
 <footer><div class="w">
+  <span class="more"><a href="guides/">Guides</a> · <a href="otter-alternative/">Otter alternative</a> · <a href="granola-alternative/">Granola alternative</a> · <a href="whisper-mac-app/">Whisper for Mac</a> · <a href="ko/" lang="ko">한국어</a></span>
   <span>Matita · MIT licence · Built with whisper.cpp, sherpa-onnx and FFmpeg</span>
   <span><a href="https://github.com/joonkiee/matita-transcriber">GitHub</a> · <a href="https://github.com/joonkiee/matita-transcriber/releases">Releases</a> · <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">Report a problem</a></span>
 </div></footer>

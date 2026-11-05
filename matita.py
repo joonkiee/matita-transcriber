@@ -4125,6 +4125,8 @@ class Handler(BaseHTTPRequestHandler):
                 subprocess.Popen(["/bin/sh", "-c", "sleep 1; launchctl kickstart -k gui/$(id -u)/%s" % LABEL],
                                  start_new_session=True)
                 return self.send_json({"ok": True})
+            if BUNDLE:
+                return self.send_json({"error": "Quit Matita (⌘Q) and open it again, so macOS applies the permission."}, 400)
             return self.send_json({"error": "Quit Matita in Terminal (Control-C) and start it again."}, 400)
 
         if u.path == "/api/setup":
@@ -7230,15 +7232,16 @@ function drawVM(){
       <p style="margin:0;font-size:15px;line-height:1.5">macOS keeps Voice Memos private, so Matita needs <b>Full Disk Access</b> to read them. It only reads your recordings and never changes or uploads them.</p>
       <ol>
         <li><div><b>Open Full Disk Access settings</b><p>System Settings opens on the right page.</p></div><button class="btn" id="vmSettings">Open</button></li>
-        <li><div><b>Add ${app.kind === "app" ? "Matita Service" : (py ? "Python" : esc(app.name))}</b><p>${py
+        <li><div><b>Add ${app.kind === "python" ? "Python" : esc(app.name)}</b><p>${py
           ? `Click Show in Finder, then drag <code>${esc(app.name)}</code> into the Full Disk Access list and turn it on.`
           : `Turn on <code>${esc(app.name)}</code> in the list, or click + to add it.`}</p></div>
           ${py ? `<button class="btn" id="vmReveal">Show in Finder</button>` : "<span></span>"}</li>
-        <li><div><b>Restart Matita</b><p>macOS applies the permission after a restart. It takes a few seconds.</p></div><button class="btn go" id="vmRestart">Restart</button></li>
-      </ol>${vm.retried ? `<p class="hint">Still blocked? Make sure the switch next to ${app.kind === "app" ? "Matita Service" : "Python"} is on in Full Disk Access. (The Matita app on your Desktop doesn't need it.) If you just reinstalled Matita, remove it from the list with the − button, add it again, then restart.</p>` : ""}</div>`;
+        ${info && info.app ? `<li><div><b>Quit Matita and open it again</b><p>macOS applies the permission after Matita restarts. Press ⌘Q, then open Matita from Applications.</p></div><span></span></li>`
+          : `<li><div><b>Restart Matita</b><p>macOS applies the permission after a restart. It takes a few seconds.</p></div><button class="btn go" id="vmRestart">Restart</button></li>`}
+      </ol>${vm.retried ? `<p class="hint">Still blocked? Make sure the switch next to ${app.kind === "python" ? "Python" : esc(app.name)} is on in Full Disk Access.${app.name === "Matita Service" ? " (The Matita app on your Desktop doesn't need it.)" : ""} If you just reinstalled Matita, remove it from the list with the − button, add it again, then restart.</p>` : ""}</div>`;
     $("#vmSettings").onclick = () => post("/api/vm/open-settings");
     if ($("#vmReveal")) $("#vmReveal").onclick = () => post("/api/vm/reveal-app");
-    $("#vmRestart").onclick = restartForVM;
+    if ($("#vmRestart")) $("#vmRestart").onclick = restartForVM;
     return;
   }
   if (vm.status === "not_found"){

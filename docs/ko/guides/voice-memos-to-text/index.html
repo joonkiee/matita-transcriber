@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>맥에서 아이폰 음성메모·강의 녹음을 텍스트로 변환하는 법 (무료, 오프라인) · Matita</title>
+<meta name="description" content="아이폰 음성메모와 강의·회의 녹음을 Mac에서 무료로 텍스트로 바꾸는 방법. 인터넷 업로드 없이 Mac 안에서 받아쓰기하고 요약까지 만들어요.">
+<link rel="canonical" href="https://joonkiee.github.io/matita-transcriber/ko/guides/voice-memos-to-text/">
+<link rel="alternate" hreflang="en" href="https://joonkiee.github.io/matita-transcriber/guides/transcribe-voice-memos-on-mac/">
+<link rel="alternate" hreflang="ko" href="https://joonkiee.github.io/matita-transcriber/ko/guides/voice-memos-to-text/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Matita">
+<meta property="og:url" content="https://joonkiee.github.io/matita-transcriber/ko/guides/voice-memos-to-text/">
+<meta property="og:title" content="맥에서 아이폰 음성메모·강의 녹음을 텍스트로 변환하는 법 (무료, 오프라인) · Matita">
+<meta property="og:description" content="아이폰 음성메모와 강의·회의 녹음을 Mac에서 무료로 텍스트로 바꾸는 방법. 인터넷 업로드 없이 Mac 안에서 받아쓰기하고 요약까지 만들어요.">
+<meta property="og:image" content="https://joonkiee.github.io/matita-transcriber/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f0e" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../../../icon.png">
+<link rel="stylesheet" href="../../../page.css">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "Article", "headline": "아이폰 음성메모와 강의 녹음을 Mac에서 텍스트로", "description": "아이폰 음성메모와 강의·회의 녹음을 Mac에서 무료로 텍스트로 바꾸는 방법. 인터넷 업로드 없이 Mac 안에서 받아쓰기하고 요약까지 만들어요.", "inLanguage": "ko", "url": "https://joonkiee.github.io/matita-transcriber/ko/guides/voice-memos-to-text/", "image": "https://joonkiee.github.io/matita-transcriber/og.png", "author": {"@type": "Person", "name": "Jun Ki Shin", "url": "https://github.com/joonkiee"}, "about": {"@type": "SoftwareApplication", "name": "Matita", "operatingSystem": "macOS 14 or later", "applicationCategory": "BusinessApplication", "url": "https://joonkiee.github.io/matita-transcriber/", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Matita", "item": "https://joonkiee.github.io/matita-transcriber/ko/"}, {"@type": "ListItem", "position": 2, "name": "가이드", "item": "https://joonkiee.github.io/matita-transcriber/ko/guides/"}, {"@type": "ListItem", "position": 3, "name": "음성메모 텍스트 변환", "item": "https://joonkiee.github.io/matita-transcriber/ko/guides/voice-memos-to-text/"}]}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "정말 무료인가요?", "acceptedAnswer": {"@type": "Answer", "text": "네. MIT 라이선스의 오픈소스 앱이고, 유료 플랜이나 사용량 제한, 계정이 없어요."}}, {"@type": "Question", "name": "인터넷이 필요한가요?", "acceptedAnswer": {"@type": "Answer", "text": "처음에 음성 모델을 내려받을 때와 업데이트 확인, 요약에 Claude를 고른 경우에만 인터넷을 써요. 받아쓰기는 오프라인에서 돼요."}}, {"@type": "Question", "name": "Windows나 인텔 Mac에서도 되나요?", "acceptedAnswer": {"@type": "Answer", "text": "지금은 Apple Silicon(M1 이상) Mac만 지원해요."}}]}]</script>
+</head>
+<body>
+<header class="top"><div class="w">
+  <nav>
+    <a class="brand" href="../../../ko/"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>Matita</a>
+    <div class="links"><a href="../../../ko/guides/">가이드</a><a href="../../../otter-alternative/">Otter 대안</a><a href="../../../whisper-mac-app/">Mac용 Whisper</a><a href="../../../guides/transcribe-voice-memos-on-mac/" lang="en">English</a></div>
+    <a class="btn dark" href="https://github.com/joonkiee/matita-transcriber/releases/latest">다운로드</a>
+  </nav>
+  <div class="crumb"><a href="../../../ko/">Matita</a> › <a href="../../../ko/guides/">가이드</a></div>
+  <h1>아이폰 음성메모와 강의 녹음을 Mac에서 텍스트로</h1>
+  <p class="lead">Matita를 쓰면 녹음 파일을 업로드하지 않고 Mac 안에서 바로 받아쓸 수 있어요. 무료이고 계정도 필요 없어요.</p>
+</div></header>
+<main>
+<article>
+
+<h2>준비</h2>
+<ul>
+<li>Apple Silicon(M1 이상) Mac, macOS 14 이상, <a href="../../">Matita</a> 설치</li>
+<li>아이폰과 Mac 모두 iCloud에서 음성 메모를 켜 주세요. 아이폰: 설정 → 내 이름 → iCloud → 음성 메모. 그다음 Mac에서 음성 메모 앱을 한 번 열면 녹음이 동기화돼요.</li>
+<li>첫 화면에서 <b>Language</b>를 Korean으로 고르세요. 한국어는 Turbo 모델을 쓰세요. Parakeet은 영어·프랑스어·스페인어·독일어 전용이에요.</li>
+</ul>
+<h2>아이폰 음성메모 받아쓰기</h2>
+<ol class="steps">
+<li><b>“From your iPhone”</b>을 눌러요.</li>
+<li><b>전체 디스크 접근 권한을 줘요.</b> macOS가 음성 메모를 보호하고 있어서 처음 한 번 필요해요. 시스템 설정 → 개인정보 보호 및 보안 → 전체 디스크 접근 권한에서 Matita를 켜고(목록에 없으면 +로 추가), Matita를 종료(⌘Q)했다가 다시 열어요. Matita는 녹음을 읽기만 하고, 바꾸거나 업로드하지 않아요.</li>
+<li><b>받아쓸 메모를 골라요.</b> 제목으로 검색할 수도 있어요.</li>
+<li><b>“Transcribe new memos automatically”</b>를 켜면 새 메모가 생길 때마다 자동으로 받아써요.</li>
+</ol>
+<div class="box"><p><b>메모가 회색으로 보이면</b> 아직 iCloud에만 있는 거예요. Mac의 음성 메모 앱에서 한 번 재생하면 내려받아져요.</p></div>
+<h2>강의·회의를 바로 녹음하기</h2>
+<ol class="steps">
+<li><b>Record</b>를 눌러 녹음을 시작해요. 녹음하는 동안 Mac이 잠자기에 들어가지 않아요.</li>
+<li>Zoom·Teams 수업이나 회의라면 <b>“Include sound from other apps”</b>를 켜요. 상대방 목소리까지 함께 녹음돼요(macOS 14.2 이상).</li>
+<li><b>“Stop and transcribe”</b>를 누르면 받아쓰기가 시작돼요.</li>
+</ol>
+<div class="box"><p>다른 사람이 있는 강의나 회의를 녹음할 때는 미리 동의를 구하세요.</p></div>
+<h2>이미 있는 녹음 파일</h2>
+<p>m4a, mp3, wav, mp4 같은 파일을 창에 끌어다 놓거나 ⌘O로 열면 돼요. 녹음기 SD 카드나 Zoom 녹화 폴더를 <b>Watch folders</b>에 추가해 두면 새 파일이 생길 때 자동으로 받아써요.</p>
+<h2>받아쓴 다음</h2>
+<ul>
+<li>여러 사람이 말한 녹음이라면 받아쓰기 전에 <b>Speakers</b>를 실제 인원수로 정해 두세요. 끝나면 Speakers 탭에서 사람별로 모아 볼 수 있어요.</li>
+<li>AI 요약을 켜면 개요, 할 일, 제목 후보를 만들어 줘요. Ollama를 쓰면 요약도 Mac 안에서 만들어져요.</li>
+<li>Word, Markdown, 자막(.srt)으로 저장하거나 Obsidian 노트로 보낼 수 있어요.</li>
+</ul>
+<h2>자주 묻는 질문</h2><h3>정말 무료인가요?</h3><p>네. MIT 라이선스의 오픈소스 앱이고, 유료 플랜이나 사용량 제한, 계정이 없어요.</p><h3>인터넷이 필요한가요?</h3><p>처음에 음성 모델을 내려받을 때와 업데이트 확인, 요약에 Claude를 고른 경우에만 인터넷을 써요. 받아쓰기는 오프라인에서 돼요.</p><h3>Windows나 인텔 Mac에서도 되나요?</h3><p>지금은 Apple Silicon(M1 이상) Mac만 지원해요.</p>
+</article>
+<div class="end"><div class="in"><h2>무료로 받아 보세요</h2><p>Apple Silicon Mac, macOS 14 이상. 계정 없이 바로 써요.</p><a class="btn dark" href="https://github.com/joonkiee/matita-transcriber/releases/latest">Mac용 다운로드</a></div></div>
+<div class="related"><h2>더 읽어 보기</h2><ul><li><a href="../../../ko/">Matita 소개</a></li><li><a href="../../../whisper-mac-app/">Whisper for Mac (영문)</a></li></ul></div>
+</main>
+<footer><div class="w"><span>Matita · MIT licence · Otter, Granola, Wispr Flow와 관련 없는 개인 프로젝트예요.</span><span><a href="https://github.com/joonkiee/matita-transcriber">GitHub</a> · <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">문제 신고</a></span></div></footer>
+</body>
+</html>

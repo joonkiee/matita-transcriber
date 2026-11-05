@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Free Whisper app for Mac, no Terminal needed · Matita</title>
+<meta name="description" content="Run OpenAI&#x27;s Whisper (large-v3-turbo) on your Mac with a free app. Matita bundles whisper.cpp with Metal acceleration, plus NVIDIA Parakeet, speaker names and summaries.">
+<link rel="canonical" href="https://joonkiee.github.io/matita-transcriber/whisper-mac-app/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Matita">
+<meta property="og:url" content="https://joonkiee.github.io/matita-transcriber/whisper-mac-app/">
+<meta property="og:title" content="Free Whisper app for Mac, no Terminal needed · Matita">
+<meta property="og:description" content="Run OpenAI&#x27;s Whisper (large-v3-turbo) on your Mac with a free app. Matita bundles whisper.cpp with Metal acceleration, plus NVIDIA Parakeet, speaker names and summaries.">
+<meta property="og:image" content="https://joonkiee.github.io/matita-transcriber/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f0e" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../icon.png">
+<link rel="stylesheet" href="../page.css">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "Article", "headline": "Whisper on your Mac, without the Terminal", "description": "Run OpenAI's Whisper (large-v3-turbo) on your Mac with a free app. Matita bundles whisper.cpp with Metal acceleration, plus NVIDIA Parakeet, speaker names and summaries.", "inLanguage": "en", "url": "https://joonkiee.github.io/matita-transcriber/whisper-mac-app/", "image": "https://joonkiee.github.io/matita-transcriber/og.png", "author": {"@type": "Person", "name": "Jun Ki Shin", "url": "https://github.com/joonkiee"}, "about": {"@type": "SoftwareApplication", "name": "Matita", "operatingSystem": "macOS 14 or later", "applicationCategory": "BusinessApplication", "url": "https://joonkiee.github.io/matita-transcriber/", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Matita", "item": "https://joonkiee.github.io/matita-transcriber/"}, {"@type": "ListItem", "position": 2, "name": "Whisper for Mac", "item": "https://joonkiee.github.io/matita-transcriber/whisper-mac-app/"}]}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is this the official Whisper app?", "acceptedAnswer": {"@type": "Answer", "text": "No. Matita is an independent open-source app that runs the openly released Whisper models through whisper.cpp."}}, {"@type": "Question", "name": "Does it use the Mac's GPU?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. whisper.cpp in Matita is built with Metal, so it runs on Apple Silicon's GPU."}}, {"@type": "Question", "name": "Can I use it on an Intel Mac?", "acceptedAnswer": {"@type": "Answer", "text": "Not this version. Matita needs Apple Silicon."}}]}]</script>
+</head>
+<body>
+<header class="top"><div class="w">
+  <nav>
+    <a class="brand" href="../"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>Matita</a>
+    <div class="links"><a href="../guides/">Guides</a><a href="../otter-alternative/">Otter alternative</a><a href="../whisper-mac-app/">Whisper for Mac</a><a href="../ko/" lang="ko">한국어</a></div>
+    <a class="btn dark" href="https://github.com/joonkiee/matita-transcriber/releases/latest">Download</a>
+  </nav>
+  <div class="crumb"><a href="../">Matita</a></div>
+  <h1>Whisper on your Mac, without the Terminal</h1>
+  <p class="lead">Matita is a free app that runs Whisper large-v3-turbo on your Mac's GPU. Download it, drag it to Applications, drop in a recording.</p>
+</div></header>
+<main>
+<article>
+
+<p>Whisper is OpenAI's open speech recognition model. Running it yourself usually means Python, Homebrew and the command line. Matita packages <a href="https://github.com/ggml-org/whisper.cpp">whisper.cpp</a>, FFmpeg and everything else inside one Mac app, built for Apple Silicon with Metal.</p>
+<h2>The speech models</h2>
+<div class="tbl"><table><thead><tr><th>In Matita</th><th>Model</th><th>Download</th><th>Languages</th></tr></thead><tbody>
+<tr><th>Turbo · Recommended</th><td>Whisper large-v3-turbo</td><td>1.6 GB</td><td>All the languages in Matita</td></tr>
+<tr><th>Turbo 8-bit · Fast</th><td>Whisper large-v3-turbo, 8-bit</td><td>870 MB</td><td>All the languages in Matita</td></tr>
+<tr><th>Parakeet · Fastest</th><td>NVIDIA Parakeet TDT 0.6B v3</td><td>640 MB</td><td>English, French, Spanish, German</td></tr>
+</tbody></table></div>
+<p>You can choose Korean, English, Japanese, Chinese, French, Spanish or German, or let Whisper detect the language. Matita downloads a model the first time you use it, then works offline.</p>
+<h2>What Matita adds around Whisper</h2>
+<ul>
+<li>Speaker names, with a Speakers view that gathers each person's lines</li>
+<li>Summaries and title ideas with Ollama on your Mac, or with Claude</li>
+<li>Recording from your microphone, and from Zoom, Teams or Meet on macOS 14.2 or later</li>
+<li>iPhone Voice Memos and watch folders, picked up automatically</li>
+<li>Timestamps you can click to play, and words the model wasn't sure about highlighted</li>
+<li>Export to .txt, .srt, Word and Markdown, and notes for Obsidian</li>
+</ul>
+<figure><picture><source srcset="../site/time-dark.webp" media="(prefers-color-scheme: dark)"><img src="../site/time-light.webp" alt="A transcript in Matita with timestamps and an audio player" loading="lazy" width="2360" height="1520"></picture><figcaption>Every line has a timestamp. Click one to hear that part.</figcaption></figure>
+<h2>Requirements</h2>
+<p>A Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later. About 100 MB for the app, plus the model you choose.</p>
+<h2>Questions</h2><h3>Is this the official Whisper app?</h3><p>No. Matita is an independent open-source app that runs the openly released Whisper models through whisper.cpp.</p><h3>Does it use the Mac&#x27;s GPU?</h3><p>Yes. whisper.cpp in Matita is built with Metal, so it runs on Apple Silicon&#x27;s GPU.</p><h3>Can I use it on an Intel Mac?</h3><p>Not this version. Matita needs Apple Silicon.</p>
+</article>
+<div class="end"><div class="in"><h2>Try it on your next recording</h2><p>Free for Apple Silicon Macs on macOS 14 or later. No account.</p><a class="btn dark" href="https://github.com/joonkiee/matita-transcriber/releases/latest">Download for Mac</a></div></div>
+<div class="related"><h2>Related</h2><ul><li><a href="../guides/transcribe-voice-memos-on-mac/">Transcribe iPhone Voice Memos on your Mac</a></li><li><a href="../otter-alternative/">Otter alternative</a></li><li><a href="../granola-alternative/">Granola alternative</a></li></ul></div>
+</main>
+<footer><div class="w"><span>Matita · MIT licence · Not affiliated with Otter, Granola or Wispr.</span><span><a href="https://github.com/joonkiee/matita-transcriber">GitHub</a> · <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">Report a problem</a></span></div></footer>
+</body>
+</html>

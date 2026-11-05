@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matita · 무료 맥 녹음 텍스트 변환 앱 (오프라인 받아쓰기)</title>
+<meta name="description" content="Mac용 무료 받아쓰기 앱. 회의·강의·통화 녹음과 아이폰 음성메모를 Mac 안에서 텍스트로 바꾸고 요약까지 만들어요. 업로드 없이, 계정 없이, 한국어 지원.">
+<link rel="canonical" href="https://joonkiee.github.io/matita-transcriber/ko/">
+<link rel="alternate" hreflang="en" href="https://joonkiee.github.io/matita-transcriber/">
+<link rel="alternate" hreflang="ko" href="https://joonkiee.github.io/matita-transcriber/ko/">
+<link rel="alternate" hreflang="x-default" href="https://joonkiee.github.io/matita-transcriber/">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f0e" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Matita">
+<meta property="og:url" content="https://joonkiee.github.io/matita-transcriber/ko/">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="Matita · 무료 맥 녹음 텍스트 변환 앱">
+<meta property="og:description" content="녹음을 Mac 안에서 텍스트, 요약, 노트로. 무료 오픈소스, 계정 필요 없음.">
+<meta property="og:image" content="https://joonkiee.github.io/matita-transcriber/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Matita", "inLanguage": "ko", "description": "Mac용 무료 오픈소스 받아쓰기 앱. 회의, 강의, 통화, 아이폰 음성메모와 오디오 파일을 Mac 안에서 Whisper로 텍스트로 바꾸고, 화자 구분, AI 요약, Obsidian 노트까지 만들어요.", "applicationCategory": "BusinessApplication", "operatingSystem": "macOS 14 이상 (Apple Silicon)", "url": "https://joonkiee.github.io/matita-transcriber/ko/", "downloadUrl": "https://github.com/joonkiee/matita-transcriber/releases/latest", "image": "https://joonkiee.github.io/matita-transcriber/og.png", "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Jun Ki Shin", "url": "https://github.com/joonkiee"}}]</script>
+<link rel="icon" href="../icon.png">
+<link rel="apple-touch-icon" href="../icon.png">
+<link rel="preload" href="../fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Geist";src:url(../fonts/geist-latin-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Matita Logo";src:url(../fonts/montserrat-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
+
+:root{
+  --page:#ffffff; --card:#f6f6f7; --card2:#ffffff; --ink:#111211; --soft:#5f625f; --faint:#9a9c9a; --line:#e8e8ea;
+  --dark:#111211; --on-dark:#f4f4f4; --on-dark-soft:#a3a6a3;
+  --green:#1f4d35; --mint:#a6e8ae; --hl:#d9f3dc; --link:#1f6b45;
+  --hero:linear-gradient(180deg,#e6f1ef 0%,#eef0fb 55%,#fbf8f6 100%);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0e0f0e; --card:#181a18; --card2:#141614; --ink:#f1f2f0; --soft:#a3a6a2; --faint:#717470; --line:#262826;
+  --dark:#f1f2f0; --on-dark:#111211; --on-dark-soft:#5f625f;
+  --hl:#1e3a26; --link:#8fdc9f;
+  --hero:linear-gradient(180deg,#132019 0%,#15172a 60%,#0e0f0e 100%);
+}}
+:root[data-theme="dark"]{
+  --page:#0e0f0e; --card:#181a18; --card2:#141614; --ink:#f1f2f0; --soft:#a3a6a2; --faint:#717470; --line:#262826;
+  --dark:#f1f2f0; --on-dark:#111211; --on-dark-soft:#5f625f;
+  --hl:#1e3a26; --link:#8fdc9f;
+  --hero:linear-gradient(180deg,#132019 0%,#15172a 60%,#0e0f0e 100%);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;height:auto;display:block}
+.w{max-width:1160px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-weight:500;letter-spacing:-.04em;margin:0}
+.tag{display:inline-block;font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--soft);background:var(--page)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:999px;font:500 14px/1 Geist,sans-serif;border:0;cursor:pointer;white-space:nowrap;padding:6px 6px 6px 18px;height:44px}
+.btn .arr{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--page);color:var(--ink)}
+.btn .arr svg{width:14px;height:14px}
+.btn.dark{background:var(--dark);color:var(--on-dark)}
+.btn.dark:hover{opacity:.86}
+.btn.plain{padding:0 18px;background:var(--card);color:var(--ink)}
+.btn.plain:hover{background:var(--line)}
+.round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--ink);background:var(--page)}
+.round svg{width:15px;height:15px}
+
+/* hero panel */
+.hero{margin:12px;border-radius:28px;background:var(--hero);padding:0 0 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;left:50%;top:150px;width:1100px;height:1100px;transform:translateX(-50%);border-radius:50%;border:1px solid color-mix(in srgb,var(--ink) 6%,transparent);pointer-events:none}
+nav{display:flex;align-items:center;gap:16px;height:76px;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:9px;font:600 17px/1 "Matita Logo",Montserrat,Geist,sans-serif;letter-spacing:-.01em;flex:1}
+.brand svg{width:26px;height:26px}
+.links{display:flex;gap:2px;background:color-mix(in srgb,var(--page) 55%,transparent);border-radius:999px;padding:4px;backdrop-filter:blur(8px)}
+.links a{font-size:13px;color:var(--soft);padding:7px 14px;border-radius:999px}
+.links a:hover{color:var(--ink);background:var(--page)}
+.navr{flex:1;display:flex;justify-content:flex-end;gap:8px}
+.navr .btn{height:36px;font-size:13px}
+.navr .btn.dark{padding:0 16px}
+.navr .btn.plain{background:color-mix(in srgb,var(--page) 70%,transparent)}
+
+.htop{text-align:center;padding:56px 0 0;position:relative;z-index:1}
+.bubbles{display:flex;justify-content:center;margin-bottom:22px}
+.bubbles span{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--page);border:2px solid color-mix(in srgb,var(--page) 40%,#e6f1ef);margin:0 -4px;color:var(--ink)}
+.bubbles span:nth-child(2){background:var(--green);color:var(--mint)}
+.bubbles svg{width:18px;height:18px}
+h1{font-size:clamp(40px,6.4vw,76px);line-height:1.04}
+.chip{display:inline-grid;place-items:center;width:.82em;height:.82em;border-radius:.24em;vertical-align:.02em;margin:0 .06em}
+.chip svg{width:.5em;height:.5em}
+.chip.g{background:var(--green);color:var(--mint)}
+.chip.v{background:#7b6cf6;color:#fff}
+.hsub{font-size:16px;color:var(--soft);margin:20px auto 0;max-width:520px}
+.hcta{display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+.fine{margin-top:14px;font-size:12.5px;color:var(--faint)}
+.fine span+span::before{content:"·";margin:0 7px}
+
+.panel{margin:52px auto 0;max-width:1000px;background:var(--card2);border-radius:20px;padding:10px;box-shadow:0 30px 70px -40px rgba(30,35,60,.35);position:relative;z-index:1}
+.panel img{border-radius:12px}
+
+/* section basics */
+section{padding:96px 0 0}
+.split{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+h2{font-size:clamp(32px,4vw,46px);line-height:1.08;margin-top:18px}
+.aside{max-width:230px;text-align:right;color:var(--faint);font-size:13px}
+mark{background:var(--hl);color:inherit;padding:0 .08em;border-radius:3px;box-shadow:inset 2px 0 0 var(--link)}
+
+/* why */
+.why{display:grid;grid-template-columns:repeat(3,1fr) 1.35fr;gap:12px;align-items:stretch}
+.num{background:var(--card);border-radius:18px;padding:18px 18px 22px;display:flex;flex-direction:column;min-height:250px}
+.num small{color:var(--faint);font-size:12px}
+.num .ic{width:40px;height:40px;border-radius:50%;background:var(--dark);color:var(--on-dark);display:grid;place-items:center;margin-top:auto}
+.num .ic svg{width:18px;height:18px}
+.num:first-child .ic{background:var(--green);color:var(--mint)}
+.num h3{font-size:16px;letter-spacing:-.02em;margin-top:16px;line-height:1.25}
+.num p{margin:6px 0 0;font-size:13px;color:var(--soft);line-height:1.45;min-height:4.35em}
+.whyc{padding:10px 0 10px 28px;display:flex;flex-direction:column;justify-content:center}
+.whyc h2{font-size:clamp(26px,2.6vw,31px);line-height:1.22;letter-spacing:-.03em}
+.whyc .hcta{justify-content:flex-start;margin-top:26px}
+
+/* features */
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:40px}
+.fc{background:var(--card);border-radius:20px;padding:24px;min-height:300px;display:flex;flex-direction:column}
+.fc .ic{width:44px;height:44px;border-radius:50%;background:var(--page);display:grid;place-items:center}
+.fc .ic svg{width:19px;height:19px}
+.fc h3{font-size:24px;letter-spacing:-.03em;margin-top:18px}
+.fc p{margin:auto 0 0;max-width:380px;font-size:13.5px;color:var(--soft);padding-top:28px}
+.fc .foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pills span{font-size:12px;border-radius:999px;padding:6px 11px;background:var(--page);color:var(--soft)}
+.fc.dk{background:var(--dark);color:var(--on-dark)}
+.fc.dk p{color:var(--on-dark-soft)}
+.fc.dk .ic{background:var(--on-dark);color:var(--dark)}
+.fc.dk .pills span{background:color-mix(in srgb,var(--on-dark) 10%,transparent);color:var(--on-dark-soft)}
+
+/* screenshots */
+.shots{margin-top:40px;background:var(--card);border-radius:24px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.shots figure{margin:0}
+.shots img{border-radius:12px;box-shadow:0 20px 50px -30px rgba(0,0,0,.4)}
+.shots figcaption{font-size:13px;color:var(--soft);margin-top:12px}
+.shots figcaption b{color:var(--ink);font-weight:500}
+
+/* compare */
+.cmp{margin-top:40px;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.pick{display:none;gap:6px;padding:12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.pick button{font:500 13px Geist,sans-serif;border:1px solid var(--line);background:var(--page);color:var(--soft);border-radius:999px;padding:7px 13px;cursor:pointer}
+.pick button[aria-pressed="true"]{background:var(--dark);color:var(--on-dark);border-color:var(--dark)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{text-align:left;vertical-align:top;padding:16px 18px;font-size:14px;line-height:1.4}
+thead th{font-weight:500;font-size:14px;color:var(--soft);padding-top:18px;padding-bottom:18px}
+thead th.mc{color:var(--ink)}
+tbody tr{border-top:1px solid var(--line)}
+tbody th{font-weight:400;color:var(--soft);width:24%}
+td.mc,th.mc{background:var(--card);font-weight:500}
+.note{font-size:12px;color:var(--faint);margin-top:12px}
+.note a{text-decoration:underline;text-underline-offset:2px}
+
+/* install */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px}
+.st{background:var(--card);border-radius:18px;padding:20px 22px 24px;min-height:190px;display:flex;flex-direction:column}
+.st small{color:var(--faint);font-size:12px}
+.st h3{font-size:19px;letter-spacing:-.03em;margin-top:auto}
+.st p{margin:6px 0 0;font-size:13.5px;color:var(--soft)}
+code{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card);padding:3px 7px;border-radius:6px;word-break:break-all}
+.tip{font-size:13px;color:var(--soft);margin-top:14px}
+
+/* faq */
+.faq{display:grid;grid-template-columns:1fr 1.5fr;gap:48px}
+details{border-bottom:1px solid var(--line)}
+details:first-child{border-top:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;padding:18px 36px 18px 0;font-size:15.5px;font-weight:500;position:relative;letter-spacing:-.01em}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:4px;top:14px;font-size:20px;font-weight:300;color:var(--soft);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:0 0 18px;color:var(--soft);font-size:14px}
+details a{text-decoration:underline;text-underline-offset:2px}
+
+/* closing */
+.end{margin:96px 12px 12px;border-radius:28px;background:var(--dark);color:var(--on-dark);padding:72px 24px;text-align:center}
+.end h2{margin:0;font-size:clamp(32px,4.4vw,52px)}
+.end p{color:var(--on-dark-soft);margin:14px 0 0}
+.end .btn.dark{background:var(--on-dark);color:var(--dark)}
+.end .btn.dark .arr{background:var(--dark);color:var(--on-dark)}
+.end .btn.plain{background:color-mix(in srgb,var(--on-dark) 10%,transparent);color:var(--on-dark)}
+.end .fine{color:var(--on-dark-soft)}
+footer .w{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:18px;padding-bottom:28px;font-size:12.5px;color:var(--faint)}
+footer .more{flex-basis:100%;display:block}
+footer a:hover{color:var(--ink)}
+
+/* download sheet */
+dialog{border:0;border-radius:22px;padding:0;max-width:420px;width:calc(100% - 32px);background:var(--page);color:var(--ink);box-shadow:0 40px 120px -20px rgba(0,0,0,.45)}
+dialog::backdrop{background:rgba(15,15,20,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet{padding:28px}
+.sheet img{width:52px;height:52px;border-radius:12px;margin-bottom:16px}
+.sheet h3{font-size:24px}
+.sheet p{color:var(--soft);margin:6px 0 0}
+.sheet ol{list-style:none;padding:0;margin:18px 0 0;counter-reset:s}
+.sheet li{counter-increment:s;display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
+.sheet li::before{content:"0" counter(s);flex:none;color:var(--faint);font-size:12px;padding-top:2px}
+.sheet .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.sheet .btn{height:40px;padding:0 16px}
+
+@media (max-width:980px){
+  .links{display:none}
+  .why{grid-template-columns:repeat(3,1fr)}
+  .whyc{grid-column:1/-1;padding:24px 0 0;order:-1}
+}
+@media (max-width:760px){
+  .feats,.shots,.steps,.faq{grid-template-columns:1fr}
+  .faq{gap:20px}
+  .fc{min-height:240px}
+  .why{grid-template-columns:1fr}
+  .num{min-height:0;display:grid;grid-template-columns:40px 1fr;column-gap:16px}
+  .num small{grid-column:1/-1;margin-bottom:12px}
+  .num .ic{grid-row:2/4;margin:0}
+  .num h3{margin:0}
+  .num p{min-height:0}
+  .aside{text-align:left}
+  .pick{display:flex}
+  table[data-show="otter"] .gr,table[data-show="otter"] .wf,
+  table[data-show="granola"] .ot,table[data-show="granola"] .wf,
+  table[data-show="wispr"] .ot,table[data-show="wispr"] .gr{display:none}
+  table{table-layout:auto}
+  tbody th{width:32%}
+  th,td{padding:14px 12px;font-size:13.5px}
+}
+@media (max-width:560px){
+  .w{padding:0 16px}
+  .hero{margin:8px;border-radius:22px;padding-bottom:40px}
+  .hero::after{display:none}
+  .navr .btn.plain{display:none}
+  .htop{padding-top:32px}
+  .panel{margin-top:36px;padding:6px;border-radius:14px}
+  .panel img{border-radius:9px}
+  .shots{padding:14px}
+  section{padding-top:72px}
+  .end{margin:72px 8px 8px;padding:56px 18px}
+}
+:lang(ko) body{word-break:keep-all}
+:lang(ko) h1,:lang(ko) h2,:lang(ko) h3{letter-spacing:-.015em}
+</style>
+</head>
+<body>
+
+<div class="hero" id="top">
+  <div class="w">
+    <nav>
+      <a class="brand" href="#top"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>Matita</a>
+      <div class="links"><a href="#features">기능</a><a href="#compare">비교</a><a href="#install">설치</a><a href="#faq">FAQ</a><a href="guides/">가이드</a><a href="../" lang="en">English</a></div>
+      <div class="navr"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest">다운로드</a><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">GitHub</a></div>
+    </nav>
+
+    <div class="htop">
+      <div class="bubbles" aria-hidden="true">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18V7l6 7 6-7v11"/></svg></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 13h6M9 17h4"/></svg></span>
+      </div>
+      <h1>녹음을 <span class="chip g" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 10v4M10 6v12M14 8v8M18 11v2"/></svg></span><br>Mac 안에서 <span class="chip v" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></span> 글로</h1>
+      <p class="hsub">회의, 강의, 통화를 텍스트와 요약, 노트로 바꿔요. 무료 오픈소스이고 계정도 필요 없어요.</p>
+      <div class="hcta">
+        <a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Mac용 다운로드</span><span class="arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></span></a>
+      </div>
+      <div class="fine"><span class="ver">무료 · 오픈소스</span><span>macOS 14 이상</span><span>Apple Silicon</span></div>
+    </div>
+
+    <div class="panel">
+      <picture>
+        <source srcset="../site/main-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="../site/main-light.webp" alt="Matita 메인 화면: 파일 추가, 설정, 받아쓴 목록" width="2360" height="1520">
+      </picture>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section>
+    <div class="w why">
+      <div class="num"><small>/01</small><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>Mac 밖으로 나가지 않아요</h3><p>음성 인식이 내 Mac에서 돌아가요. 녹음 파일을 업로드하지 않아요.</p></div>
+      <div class="num"><small>/02</small><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></span><h3>무료, 제한 없음</h3><p>구독도, 분 단위 제한도, 가입도 없어요.</p></div>
+      <div class="num"><small>/03</small><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h6l2 2h8v10H4z"/></svg></span><h3>내가 갖는 파일</h3><p>텍스트, 자막, Word, Markdown을 내가 고른 폴더에 저장해요.</p></div>
+      <div class="whyc">
+        <span class="tag" style="align-self:flex-start">왜 Matita인가요</span>
+        <h2 style="margin-top:16px">남의 서버가 아니라 <mark>내 Mac에서</mark> 돌아가는 받아쓰기 앱.</h2>
+        <div class="hcta"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Mac용 다운로드</span><span class="arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></span></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="w">
+      <div class="split">
+        <div><span class="tag">기능</span><h2>어떤 녹음이든<br><span class="chip g" style="font-size:.9em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 10v4M10 6v12M14 8v8M18 11v2"/></svg></span> 다 받아써요</h2></div>
+        <p class="aside">한국어, 영어, 일본어, 중국어, 프랑스어, 스페인어, 독일어를 고르거나 자동 감지에 맡길 수 있어요. 영어·프랑스어·스페인어·독일어는 더 빠른 Parakeet도 쓸 수 있어요.</p>
+      </div>
+      <div class="feats">
+        <div class="fc">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3"/></svg></span>
+          <h3>회의와 통화</h3>
+          <p>Zoom, Teams, Meet에서 나와 상대방 목소리를 함께 녹음하고, 누가 말했는지 구분해요. 회의에 봇이 들어가지 않아요.</p>
+          <div class="foot"><div class="pills"><span>Zoom</span><span>Teams</span><span>Meet</span><span>화자 구분</span></div></div>
+        </div>
+        <div class="fc dk">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg></span>
+          <h3>요약과 노트</h3>
+          <p>녹음마다 개요, 할 일, 제목 후보 세 개를 만들어요. Ollama로 Mac 안에서 만들거나, 원하면 Claude를 쓸 수 있어요. Obsidian 노트로 바로 보낼 수도 있어요.</p>
+          <div class="foot"><div class="pills"><span>Ollama</span><span>Claude</span><span>Obsidian</span></div></div>
+        </div>
+        <div class="fc">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M10 10v4M12 8v8M14 11v2"/></svg></span>
+          <h3>강의와 음성메모</h3>
+          <p>Mac 마이크로 녹음하거나 아이폰 음성 메모로 녹음하세요. 새 메모가 Mac에 동기화되면 자동으로 받아써요.</p>
+          <div class="foot"><div class="pills"><span>마이크</span><span>음성 메모</span></div></div>
+        </div>
+        <div class="fc">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7l2 2h9v10H3z"/></svg></span>
+          <h3>이미 있는 녹음 파일</h3>
+          <p>오디오나 영상 파일을 끌어다 놓으세요. 녹음기 SD 카드 같은 폴더를 지정해 두면 새 파일을 알아서 받아써요.</p>
+          <div class="foot"><div class="pills"><span>.m4a</span><span>.mp3</span><span>.wav</span><span>.mp4</span><span>감시 폴더</span></div></div>
+        </div>
+      </div>
+
+      <div class="shots">
+        <figure><picture><source srcset="../site/reader-dark.webp" media="(prefers-color-scheme: dark)"><img src="../site/reader-light.webp" alt="제목 후보 세 개가 있는 AI 요약" loading="lazy" width="2360" height="1520"></picture><figcaption><b>다시 듣지 말고 읽으세요.</b> 받아쓰기가 끝나면 요약도 준비돼요.</figcaption></figure>
+        <figure><picture><source srcset="../site/time-dark.webp" media="(prefers-color-scheme: dark)"><img src="../site/time-light.webp" alt="시간이 표시된 받아쓰기와 오디오 플레이어" loading="lazy" width="2360" height="1520"></picture><figcaption><b>그 순간을 바로 찾기.</b> 모든 줄에 시간이 있어요. 누르면 그 부분이 재생돼요.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <div class="w">
+      <div class="split">
+        <div><span class="tag">비교</span><h2>다른 서비스와 비교</h2></div>
+        <p class="aside">Otter, Granola, Wispr Flow는 클라우드 서비스예요. 그래서 이런 차이가 생겨요.</p>
+      </div>
+      <div class="cmp">
+        <div class="pick" role="group" aria-label="비교할 서비스"><button data-show="otter" aria-pressed="true">Otter</button><button data-show="granola" aria-pressed="false">Granola</button><button data-show="wispr" aria-pressed="false">Wispr Flow</button></div>
+        <table id="cmp" data-show="otter">
+          <thead><tr><th></th><th class="mc">Matita</th><th class="ot">Otter</th><th class="gr">Granola</th><th class="wf">Wispr Flow</th></tr></thead>
+          <tbody>
+            <tr><th>음성 인식 위치</th><td class="mc">내 Mac</td><td class="ot">Otter 클라우드</td><td class="gr">외부 클라우드 전사 업체</td><td class="wf">Wispr 클라우드</td></tr>
+            <tr><th>기존 녹음 파일</th><td class="mc">모든 오디오·영상 파일</td><td class="ot">무료 플랜은 3개까지</td><td class="gr">지원 안 함</td><td class="wf">지원 안 함</td></tr>
+            <tr><th>무료 플랜</th><td class="mc">모든 기능, 제한 없음</td><td class="ot">월 300분, 대화당 30분</td><td class="gr">회의 기록 30일 보관</td><td class="wf">주 2,000단어 받아쓰기</td></tr>
+            <tr><th>유료 플랜</th><td class="mc">없음</td><td class="ot">월 $16.99, 연간 결제 시 월 $8.33</td><td class="gr">사용자당 월 $14</td><td class="wf">월 $15, 연간 결제 시 월 $12</td></tr>
+            <tr><th>계정</th><td class="mc">필요 없음</td><td class="ot">필요</td><td class="gr">필요</td><td class="wf">필요</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">2026년 11월 5일 각 사 공식 페이지 기준으로 확인했어요: <a href="https://otter.ai/pricing">Otter pricing</a>, <a href="https://www.granola.ai/pricing">Granola pricing</a> and <a href="https://docs.granola.ai/help-center/taking-notes/transcription">help</a>, and <a href="https://wisprflow.ai/pricing">Wispr Flow pricing</a> and <a href="https://docs.wisprflow.ai/articles/7689167034-can-i-upload-audio-files-to-wispr-flow-for-transcription">help</a>. 가격은 미국 달러, 사용자 1인, 세금 제외 기준이고 이후 바뀌었을 수 있어요.</p>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="w">
+      <div class="split">
+        <div><span class="tag">설치</span><h2>1분이면 시작해요</h2></div>
+        <p class="aside">Matita는 유료 Apple 개발자 인증서로 서명하지 않아서, 처음 한 번 macOS가 확인을 요청해요.</p>
+      </div>
+      <div class="steps">
+        <div class="st"><small>/01</small><h3>받아서 끌어 놓기</h3><p>.dmg를 열고 Matita를 응용 프로그램 폴더로 끌어다 놓아요.</p></div>
+        <div class="st"><small>/02</small><h3>한 번 열기</h3><p>macOS가 앱을 확인할 수 없다고 하면 <b>완료</b>를 눌러요.</p></div>
+        <div class="st"><small>/03</small><h3>그래도 열기</h3><p>시스템 설정 → 개인정보 보호 및 보안에서 <b>그래도 열기</b>를 눌러요. 처음 한 번만 하면 돼요.</p></div>
+      </div>
+      <p class="tip">터미널이 편하다면: <code>xattr -dr com.apple.quarantine /Applications/Matita.app</code></p>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="w faq">
+      <div><span class="tag">FAQ</span><h2>자주 묻는 질문</h2></div>
+      <div>
+        <details><summary>Mac 밖으로 나가는 게 있나요?</summary><p>녹음과 받아쓴 글은 나가지 않아요. 처음 음성 모델을 내려받을 때, GitHub에서 새 버전을 확인할 때, 그리고 요약에 Claude를 고른 경우 글을 Anthropic에 보낼 때만 인터넷을 써요.</p></details>
+        <details><summary>용량은 얼마나 필요한가요?</summary><p>앱은 약 100 MB이고, 처음 쓸 때 음성 모델 하나를 내려받아요: 640 MB(Parakeet), 870 MB(Turbo 8-bit), 1.6 GB(Turbo). 한국어는 Turbo를 쓰세요.</p></details>
+        <details><summary>인텔 Mac이나 Windows에서도 되나요?</summary><p>아니요. Apple Silicon(M1 이상) Mac과 macOS 14 Sonoma 이상이 필요해요. 다른 앱 소리(통화 상대방)를 녹음하려면 macOS 14.2 이상이 필요해요.</p></details>
+        <details><summary>처음 열 때 왜 경고가 뜨나요?</summary><p>유료 개발자 인증서로 서명하지 않은 앱이면 macOS가 항상 이 경고를 보여줘요. Matita는 소스 코드가 공개되어 있고, 모든 버전을 GitHub에서 그 코드로 빌드해요.</p></details>
+        <details><summary>삭제는 어떻게 하나요?</summary><p>Matita를 종료하고 휴지통으로 끌어다 놓으세요. 모델은 ~/whisper-models, 설정은 ~/whisper-app에 있어요. 받아쓴 글은 Transcripts 폴더에 그대로 남아요.</p></details>
+        <details><summary>어떻게 도울 수 있나요?</summary><p><a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">GitHub</a>에 문제나 아이디어를 남기거나 별(Star)을 눌러 주세요.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="end">
+  <h2>다음 녹음에 써 보세요</h2>
+  <p>무료 오픈소스, 계정 필요 없음.</p>
+  <div class="hcta"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Mac용 다운로드</span><span class="arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></span></a><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">GitHub에서 보기</a></div>
+  <div class="fine"><span class="ver">무료 · 오픈소스</span><span>macOS 14 이상</span><span>Apple Silicon</span></div>
+</div>
+
+<footer><div class="w">
+  <span class="more"><a href="guides/">가이드</a> · <a href="guides/voice-memos-to-text/">음성메모 텍스트 변환</a> · <a href="../otter-alternative/">Otter 대안 (영문)</a> · <a href="../granola-alternative/">Granola 대안 (영문)</a> · <a href="../" lang="en">English</a></span>
+  <span>Matita · MIT 라이선스 · whisper.cpp, sherpa-onnx, FFmpeg 사용</span>
+  <span><a href="https://github.com/joonkiee/matita-transcriber">GitHub</a> · <a href="https://github.com/joonkiee/matita-transcriber/releases">Releases</a> · <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">문제 신고</a></span>
+</div></footer>
+
+<dialog id="after" aria-labelledby="afterTitle"><div class="sheet">
+  <img src="../icon.png" alt="">
+  <h3 id="afterTitle">다운로드를 시작했어요</h3>
+  <p>그다음:</p>
+  <ol>
+    <li><b id="afterFile">.dmg</b>를 열고 Matita를 응용 프로그램 폴더로 끌어다 놓아요.</li>
+    <li>Matita를 열어요. 확인할 수 없다는 창이 뜨면 <b>완료</b>를 눌러요.</li>
+    <li>시스템 설정 → 개인정보 보호 및 보안 → <b>그래도 열기</b>.</li>
+  </ol>
+  <div class="row"><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">GitHub 별 누르기</a><button class="btn dark" style="padding:0 18px" data-close>확인</button></div>
+</div></dialog>
+
+<dialog id="notmac" aria-labelledby="notmacTitle"><div class="sheet">
+  <img src="../icon.png" alt="">
+  <h3 id="notmacTitle">Matita는 Mac 앱이에요</h3>
+  <p>Apple Silicon Mac이 필요해요. 링크를 나에게 보내서 Mac에서 받으세요.</p>
+  <div class="row"><button class="btn plain" id="copyLink">링크 복사</button><a class="btn dark" style="padding:0 18px" id="mailLink" href="#">메일로 보내기</a></div>
+</div></dialog>
+
+<script>
+(() => {
+  const page = "https://joonkiee.github.io/matita-transcriber/ko/";
+  const ua = navigator.userAgent, plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+  const touchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;      // an iPad asking for the desktop site
+  const isMac = /Mac/i.test(plat) && !/iPhone|iPad|iPod/.test(ua) && !touchMac;
+  const links = document.querySelectorAll("a.dl");
+  let asset = null;
+
+  // newest .dmg straight from GitHub; the releases page if that doesn't answer
+  fetch("https://api.github.com/repos/joonkiee/matita-transcriber/releases/latest").then(r => r.ok ? r.json() : null).then(d => {
+    if (!d) return;
+    asset = (d.assets || []).find(a => /\.dmg$/i.test(a.name)) || null;
+    const v = String(d.tag_name || "").replace(/^v/, "");
+    const mb = asset ? Math.round(asset.size / 1e6) + " MB" : "";
+    document.querySelectorAll(".ver").forEach(e => e.textContent = ["버전 " + v, mb].filter(Boolean).join(" · "));
+    if (asset && isMac) links.forEach(a => a.href = asset.browser_download_url);
+    if (asset) document.getElementById("afterFile").textContent = asset.name;
+  }).catch(() => {});
+
+  if (!isMac) document.querySelectorAll(".dl-label").forEach(e => e.textContent = "Mac에서 받기");
+  const after = document.getElementById("after"), notmac = document.getElementById("notmac");
+  links.forEach(a => a.addEventListener("click", e => {
+    if (!isMac){ e.preventDefault(); notmac.showModal(); return; }
+    if (asset) setTimeout(() => after.showModal(), 400);   // the download has started; show what to do next
+  }));
+  document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+  [after, notmac].forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
+  document.getElementById("mailLink").href = "mailto:?subject=" + encodeURIComponent("Matita for Mac") + "&body=" + encodeURIComponent("Mac에서 Matita 받기: " + page);
+  document.getElementById("copyLink").onclick = async e => {
+    try{ await navigator.clipboard.writeText(page); e.target.textContent = "복사했어요"; }catch(_){ e.target.textContent = page; }
+  };
+
+  // on a phone the table shows Matita next to one product at a time
+  const cmp = document.getElementById("cmp");
+  document.querySelectorAll(".pick button").forEach(b => b.onclick = () => {
+    cmp.dataset.show = b.dataset.show;
+    document.querySelectorAll(".pick button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  });
+})();
+</script>
+</body>
+</html>
