@@ -282,7 +282,7 @@ Your audio and transcripts never do. Matita only goes online to download speech 
 Matita isn't signed with a paid Apple Developer ID. The app is open source and built in public by [GitHub Actions](.github/workflows/build-app.yml) from this repository. To open it the first time: click **Done**, then **System Settings → Privacy & Security → Open Anyway**. Or in Terminal: `xattr -dr com.apple.quarantine /Applications/Matita.app`.
 
 **Which languages?**
-Whisper handles about 100 languages, including Korean, Japanese and Chinese. Parakeet (the fastest model) covers English and 24 European languages.
+You can pick Korean, English, Japanese, Chinese, French, Spanish or German, or let Whisper detect the language. Parakeet (the fastest model) covers English, French, Spanish and German.
 
 **How much space does it need?**
 The app is about 100 MB. The speech model downloads on first use: 640 MB (Parakeet), 870 MB (Turbo 8-bit) or 1.6 GB (Turbo).

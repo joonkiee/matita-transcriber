@@ -3,431 +3,398 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Matita · Transcription that stays on your Mac</title>
-<meta name="description" content="Turn lectures, interviews, meetings and calls into transcripts, summaries and notes. Entirely on your Mac. Free and open source.">
-<meta name="theme-color" content="#f6f3ec" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121412" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="Matita · Transcription that stays on your Mac">
-<meta property="og:description" content="Transcripts, AI summaries and Obsidian notes from your recordings. Nothing leaves your Mac. Free and open source.">
+<title>Matita · Transcription on your Mac</title>
+<meta name="description" content="Transcripts, summaries and notes from meetings, lectures and the recordings you already have. Runs on your Mac. Free and open source.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f0e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Matita · Transcription on your Mac">
+<meta property="og:description" content="Transcripts, summaries and notes from your recordings. Runs on your Mac. Free and open source.">
 <meta property="og:image" content="https://joonkiee.github.io/matita-transcriber/site/main-light.webp">
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
-<link rel="preload" href="fonts/newsreader-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-@font-face{font-family:"Newsreader";src:url(fonts/newsreader-latin-opsz-normal.woff2) format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
-@font-face{font-family:"Newsreader";src:url(fonts/newsreader-latin-opsz-italic.woff2) format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
 @font-face{font-family:"Geist";src:url(fonts/geist-latin-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap}
 @font-face{font-family:"Matita Logo";src:url(fonts/montserrat-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
 
 :root{
-  --bg:#f6f3ec; --card:#fffdf8; --sunk:#efebe1; --ink:#1b1f1c; --soft:#5d635d; --faint:#8a8f88; --line:#e2dccf;
-  --green:#1f4d35; --green-hi:#28613f; --mint:#a6e8ae; --mint-soft:#dcf3dc; --link:#1f6b45;
-  --amber:#b7791f; --amber-soft:#fbefd5; --cloud:#8a8f88; --cloud-soft:#ebe8e0;
-  --shadow:0 1px 0 rgba(0,0,0,.03),0 24px 60px -30px rgba(40,35,20,.35);
+  --page:#ffffff; --card:#f6f6f7; --card2:#ffffff; --ink:#111211; --soft:#5f625f; --faint:#9a9c9a; --line:#e8e8ea;
+  --dark:#111211; --on-dark:#f4f4f4; --on-dark-soft:#a3a6a3;
+  --green:#1f4d35; --mint:#a6e8ae; --hl:#d9f3dc; --link:#1f6b45;
+  --hero:linear-gradient(180deg,#e6f1ef 0%,#eef0fb 55%,#fbf8f6 100%);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#121412; --card:#1a1d1a; --sunk:#202420; --ink:#ecebe4; --soft:#a2a79f; --faint:#7d827b; --line:#2d322d;
-  --green:#2c6b49; --green-hi:#347a54; --mint:#a6e8ae; --mint-soft:#1f3a27; --link:#8fdc9f;
-  --amber:#e0a84a; --amber-soft:#3a2f1a; --cloud:#8c918a; --cloud-soft:#262a26;
-  --shadow:0 1px 0 rgba(255,255,255,.02),0 24px 60px -30px rgba(0,0,0,.9);
+  --page:#0e0f0e; --card:#181a18; --card2:#141614; --ink:#f1f2f0; --soft:#a3a6a2; --faint:#717470; --line:#262826;
+  --dark:#f1f2f0; --on-dark:#111211; --on-dark-soft:#5f625f;
+  --hl:#1e3a26; --link:#8fdc9f;
+  --hero:linear-gradient(180deg,#132019 0%,#15172a 60%,#0e0f0e 100%);
 }}
 :root[data-theme="dark"]{
-  --bg:#121412; --card:#1a1d1a; --sunk:#202420; --ink:#ecebe4; --soft:#a2a79f; --faint:#7d827b; --line:#2d322d;
-  --green:#2c6b49; --green-hi:#347a54; --mint:#a6e8ae; --mint-soft:#1f3a27; --link:#8fdc9f;
-  --amber:#e0a84a; --amber-soft:#3a2f1a; --cloud:#8c918a; --cloud-soft:#262a26;
-  --shadow:0 1px 0 rgba(255,255,255,.02),0 24px 60px -30px rgba(0,0,0,.9);
+  --page:#0e0f0e; --card:#181a18; --card2:#141614; --ink:#f1f2f0; --soft:#a3a6a2; --faint:#717470; --line:#262826;
+  --dark:#f1f2f0; --on-dark:#111211; --on-dark-soft:#5f625f;
+  --hl:#1e3a26; --link:#8fdc9f;
+  --hero:linear-gradient(180deg,#132019 0%,#15172a 60%,#0e0f0e 100%);
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:70px}
-body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.55 Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-a{color:var(--link);text-decoration:none}
-a:hover{text-decoration:underline;text-underline-offset:3px}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
-.w{max-width:1120px;margin:0 auto;padding:0 24px}
-.serif{font-family:Newsreader,Georgia,serif;font-weight:500;letter-spacing:-.02em}
-.serif em{font-style:italic;color:var(--link)}
-.eyebrow{display:inline-block;font-size:13px;font-weight:500;color:var(--soft);letter-spacing:.02em;margin-bottom:14px}
+.w{max-width:1160px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-weight:500;letter-spacing:-.04em;margin:0}
+.tag{display:inline-block;font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--soft);background:var(--page)}
 
-/* nav */
-nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-nav .w{height:64px;display:flex;align-items:center;gap:28px}
-.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:600 19px/1 "Matita Logo",Montserrat,Geist,sans-serif;margin-right:auto}
-.brand:hover{text-decoration:none}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:999px;font:500 14px/1 Geist,sans-serif;border:0;cursor:pointer;white-space:nowrap;padding:6px 6px 6px 18px;height:44px}
+.btn .arr{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--page);color:var(--ink)}
+.btn .arr svg{width:14px;height:14px}
+.btn.dark{background:var(--dark);color:var(--on-dark)}
+.btn.dark:hover{opacity:.86}
+.btn.plain{padding:0 18px;background:var(--card);color:var(--ink)}
+.btn.plain:hover{background:var(--line)}
+.round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--ink);background:var(--page)}
+.round svg{width:15px;height:15px}
+
+/* hero panel */
+.hero{margin:12px;border-radius:28px;background:var(--hero);padding:0 0 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;left:50%;top:150px;width:1100px;height:1100px;transform:translateX(-50%);border-radius:50%;border:1px solid color-mix(in srgb,var(--ink) 6%,transparent);pointer-events:none}
+nav{display:flex;align-items:center;gap:16px;height:76px;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:9px;font:600 17px/1 "Matita Logo",Montserrat,Geist,sans-serif;letter-spacing:-.01em;flex:1}
 .brand svg{width:26px;height:26px}
-nav a.l{color:var(--soft);font-size:14.5px}
-nav a.l:hover{color:var(--ink);text-decoration:none}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;font:500 15px/1 Geist,sans-serif;padding:13px 22px;border:0;cursor:pointer;white-space:nowrap}
-.btn:hover{text-decoration:none}
-.btn.dark{background:var(--ink);color:var(--bg)}
-.btn.dark:hover{opacity:.88}
-.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
-.btn.ghost:hover{background:var(--card)}
-nav .btn{padding:9px 16px;font-size:14px}
+.links{display:flex;gap:2px;background:color-mix(in srgb,var(--page) 55%,transparent);border-radius:999px;padding:4px;backdrop-filter:blur(8px)}
+.links a{font-size:13px;color:var(--soft);padding:7px 14px;border-radius:999px}
+.links a:hover{color:var(--ink);background:var(--page)}
+.navr{flex:1;display:flex;justify-content:flex-end;gap:8px}
+.navr .btn{height:36px;font-size:13px}
+.navr .btn.dark{padding:0 16px}
+.navr .btn.plain{background:color-mix(in srgb,var(--page) 70%,transparent)}
 
-/* hero */
-.hero{text-align:center;padding:72px 0 0}
-.news{display:inline-flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px 5px 6px;font-size:13.5px;color:var(--soft);margin-bottom:30px}
-.news b{background:var(--mint-soft);color:var(--link);font-weight:600;border-radius:999px;padding:3px 9px;font-size:12px}
-.news:hover{text-decoration:none;color:var(--ink)}
-h1{font-size:clamp(46px,7.6vw,92px);line-height:1;margin:0 auto;max-width:900px}
-.sub{font-size:clamp(18px,2.1vw,21px);color:var(--soft);max-width:640px;margin:24px auto 0;line-height:1.5}
-.ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
-.fine{margin-top:16px;font-size:13px;color:var(--faint)}
-.fine span+span::before{content:"·";margin:0 8px}
-.stage{margin:64px auto 0;max-width:1180px;padding:44px 44px 0;border-radius:32px 32px 0 0;background:
-  radial-gradient(1000px 420px at 50% 0%,color-mix(in srgb,var(--mint) 55%,transparent),transparent 70%),
-  linear-gradient(180deg,var(--mint-soft),var(--bg));overflow:hidden}
-.window{border-radius:14px 14px 0 0;overflow:hidden;background:var(--card);box-shadow:var(--shadow),0 0 0 1px var(--line)}
-.window .bar{height:30px;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--sunk)}
-.window .bar i{width:12px;height:12px;border-radius:50%;display:block;background:#ff5f57}
-.window .bar i:nth-child(2){background:#febc2e}.window .bar i:nth-child(3){background:#28c840}
+.htop{text-align:center;padding:56px 0 0;position:relative;z-index:1}
+.bubbles{display:flex;justify-content:center;margin-bottom:22px}
+.bubbles span{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--page);border:2px solid color-mix(in srgb,var(--page) 40%,#e6f1ef);margin:0 -4px;color:var(--ink)}
+.bubbles span:nth-child(2){background:var(--green);color:var(--mint)}
+.bubbles svg{width:18px;height:18px}
+h1{font-size:clamp(40px,6.4vw,76px);line-height:1.04}
+.chip{display:inline-grid;place-items:center;width:.82em;height:.82em;border-radius:.24em;vertical-align:.02em;margin:0 .06em}
+.chip svg{width:.5em;height:.5em}
+.chip.g{background:var(--green);color:var(--mint)}
+.chip.v{background:#7b6cf6;color:#fff}
+.hsub{font-size:16px;color:var(--soft);margin:20px auto 0;max-width:520px}
+.hcta{display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+.fine{margin-top:14px;font-size:12.5px;color:var(--faint)}
+.fine span+span::before{content:"·";margin:0 7px}
 
-/* where you already record */
-.sources{padding:56px 0 8px;text-align:center}
-.sources p{color:var(--faint);font-size:14px;margin:0 0 18px}
-.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:14.5px;color:var(--ink)}
-.chip svg{width:17px;height:17px;color:var(--link)}
+.panel{margin:52px auto 0;max-width:1000px;background:var(--card2);border-radius:20px;padding:10px;box-shadow:0 30px 70px -40px rgba(30,35,60,.35);position:relative;z-index:1}
+.panel img{border-radius:12px}
 
-/* sections */
-section{padding:112px 0}
-.head{max-width:760px}
-.head.c{margin:0 auto;text-align:center}
-h2{font-size:clamp(36px,5vw,60px);line-height:1.04;margin:0}
-.lead{font-size:clamp(17px,1.9vw,19px);color:var(--soft);margin:18px 0 0;line-height:1.55}
+/* section basics */
+section{padding:96px 0 0}
+.split{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+h2{font-size:clamp(32px,4vw,46px);line-height:1.08;margin-top:18px}
+.aside{max-width:230px;text-align:right;color:var(--faint);font-size:13px}
+mark{background:var(--hl);color:inherit;padding:0 .08em;border-radius:3px;box-shadow:inset 2px 0 0 var(--link)}
 
-/* spotlights */
-.spot{display:grid;grid-template-columns:5fr 7fr;gap:64px;align-items:center;margin-top:88px}
-.spot:first-of-type{margin-top:56px}
-.spot.rev{grid-template-columns:7fr 5fr}.spot.rev .copy{order:2}
-.spot h3{font-size:clamp(28px,3.4vw,40px);line-height:1.1;margin:0}
-.spot p{color:var(--soft);margin:16px 0 0}
-.shot{border-radius:20px;overflow:hidden;box-shadow:var(--shadow),0 0 0 1px var(--line);background:var(--card)}
-.ticks{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
-.ticks li{display:flex;gap:10px;align-items:flex-start;font-size:15.5px}
-.ticks li::before{content:"";flex:none;width:18px;height:18px;margin-top:3px;border-radius:50%;background:var(--mint-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.4l2.6 2.5L13 6.5' fill='none' stroke='%231f6b45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat}
+/* why */
+.why{display:grid;grid-template-columns:repeat(3,1fr) 1.35fr;gap:12px;align-items:stretch}
+.num{background:var(--card);border-radius:18px;padding:18px 18px 22px;display:flex;flex-direction:column;min-height:250px}
+.num small{color:var(--faint);font-size:12px}
+.num .ic{width:40px;height:40px;border-radius:50%;background:var(--dark);color:var(--on-dark);display:grid;place-items:center;margin-top:auto}
+.num .ic svg{width:18px;height:18px}
+.num:first-child .ic{background:var(--green);color:var(--mint)}
+.num h3{font-size:16px;letter-spacing:-.02em;margin-top:16px;line-height:1.25}
+.num p{margin:6px 0 0;font-size:13px;color:var(--soft);line-height:1.45;min-height:4.35em}
+.whyc{padding:10px 0 10px 28px;display:flex;flex-direction:column;justify-content:center}
+.whyc h2{font-size:clamp(26px,2.6vw,31px);line-height:1.22;letter-spacing:-.03em}
+.whyc .hcta{justify-content:flex-start;margin-top:26px}
 
-/* small features */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
-.f{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px}
-.f svg{width:28px;height:28px;color:var(--link);margin-bottom:16px}
-.f h4{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
-.f p{margin:6px 0 0;color:var(--soft);font-size:15px}
+/* features */
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:40px}
+.fc{background:var(--card);border-radius:20px;padding:24px;min-height:300px;display:flex;flex-direction:column}
+.fc .ic{width:44px;height:44px;border-radius:50%;background:var(--page);display:grid;place-items:center}
+.fc .ic svg{width:19px;height:19px}
+.fc h3{font-size:24px;letter-spacing:-.03em;margin-top:18px}
+.fc p{margin:auto 0 0;max-width:380px;font-size:13.5px;color:var(--soft);padding-top:28px}
+.fc .foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pills span{font-size:12px;border-radius:999px;padding:6px 11px;background:var(--page);color:var(--soft)}
+.fc.dk{background:var(--dark);color:var(--on-dark)}
+.fc.dk p{color:var(--on-dark-soft)}
+.fc.dk .ic{background:var(--on-dark);color:var(--dark)}
+.fc.dk .pills span{background:color-mix(in srgb,var(--on-dark) 10%,transparent);color:var(--on-dark-soft)}
 
-/* compare: where the audio goes */
-.flows{margin-top:56px;display:grid;gap:12px}
-.flow{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 20px}
-.flow.me{border-color:color-mix(in srgb,var(--green) 55%,var(--line));box-shadow:0 0 0 3px var(--mint-soft)}
-.flow .name{font-weight:600;font-size:16px;display:flex;align-items:center;gap:9px}
-.flow .name small{display:block;font-weight:400;color:var(--faint);font-size:12.5px}
-.lane{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.node{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:12px;font-size:14px;background:var(--sunk);white-space:nowrap}
-.node svg{width:16px;height:16px;flex:none}
-.node.mac{background:var(--mint-soft);color:var(--link);font-weight:500}
-.node.cloud{background:var(--cloud-soft);color:var(--soft);border:1px dashed var(--cloud)}
-.arrow{color:var(--faint);font-size:15px}
-.zone{display:inline-flex;align-items:center;gap:8px;padding:6px;border-radius:16px;border:1.5px dashed color-mix(in srgb,var(--green) 60%,transparent);position:relative;flex-wrap:wrap}
-.zone::before{content:"Your Mac";position:absolute;top:-10px;left:14px;background:var(--card);padding:0 6px;font-size:11.5px;font-weight:600;color:var(--link);letter-spacing:.03em}
+/* screenshots */
+.shots{margin-top:40px;background:var(--card);border-radius:24px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.shots figure{margin:0}
+.shots img{border-radius:12px;box-shadow:0 20px 50px -30px rgba(0,0,0,.4)}
+.shots figcaption{font-size:13px;color:var(--soft);margin-top:12px}
+.shots figcaption b{color:var(--ink);font-weight:500}
 
-/* compare: the table */
-.cmpwrap{margin-top:40px;background:var(--card);border:1px solid var(--line);border-radius:24px;overflow:hidden}
-.pick{display:none;gap:6px;padding:14px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap}
-.pick span{font-size:13px;color:var(--faint);margin-right:4px}
-.pick button{font:500 14px Geist,sans-serif;border:1px solid var(--line);background:transparent;color:var(--soft);border-radius:999px;padding:7px 13px;cursor:pointer}
-.pick button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* compare */
+.cmp{margin-top:40px;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.pick{display:none;gap:6px;padding:12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.pick button{font:500 13px Geist,sans-serif;border:1px solid var(--line);background:var(--page);color:var(--soft);border-radius:999px;padding:7px 13px;cursor:pointer}
+.pick button[aria-pressed="true"]{background:var(--dark);color:var(--on-dark);border-color:var(--dark)}
 table{width:100%;border-collapse:collapse;table-layout:fixed}
-th,td{padding:14px 16px;text-align:left;vertical-align:top;font-size:14.5px}
-thead th{background:var(--card);font-size:16px;font-weight:600;padding-top:22px;padding-bottom:16px;border-bottom:1px solid var(--line)}
-thead th small{display:block;font-weight:400;color:var(--faint);font-size:12.5px;margin-top:2px}
-th.rowh{font-weight:500;color:var(--ink);width:24%}
-td.mc{background:color-mix(in srgb,var(--mint-soft) 55%,transparent)}
-thead th.mc{background:color-mix(in srgb,var(--mint-soft) 55%,var(--card))}
-tbody tr+tr td,tbody tr+tr th{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
-tr.grp th{padding:26px 16px 10px;border-top:1px solid var(--line)}
-tr.grp:first-child th{border-top:0}
-.gl{display:flex;align-items:baseline;gap:12px}
-.gl b{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:inline-grid;place-items:center;font-size:13px;flex:none;align-self:center}
-.gl span{font-family:Newsreader,Georgia,serif;font-size:22px;font-weight:500;letter-spacing:-.01em}
-.gl small{color:var(--faint);font-size:13.5px;font-weight:400}
-.m{display:flex;gap:9px;align-items:flex-start;line-height:1.35}
-.m i{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;margin-top:-1px}
-.y i{background:var(--green);color:#fff}
-.p i{background:linear-gradient(90deg,var(--amber) 50%,transparent 50%);box-shadow:inset 0 0 0 2px var(--amber);width:16px;height:16px;margin:1px 2px 0}
-.n i{background:var(--sunk);color:var(--faint)}
-.c i{background:var(--cloud-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z' fill='%238a8f88'/%3E%3C/svg%3E") center/13px no-repeat}
-.n,.c{color:var(--soft)}
-.m i svg{width:12px;height:12px}
-.legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:18px;font-size:13px;color:var(--soft)}
-.legend .m{align-items:center}
-.src{margin-top:10px;text-align:center;font-size:12.5px;color:var(--faint)}
+th,td{text-align:left;vertical-align:top;padding:16px 18px;font-size:14px;line-height:1.4}
+thead th{font-weight:500;font-size:14px;color:var(--soft);padding-top:18px;padding-bottom:18px}
+thead th.mc{color:var(--ink)}
+tbody tr{border-top:1px solid var(--line)}
+tbody th{font-weight:400;color:var(--soft);width:24%}
+td.mc,th.mc{background:var(--card);font-weight:500}
+.note{font-size:12px;color:var(--faint);margin-top:12px}
+.note a{text-decoration:underline;text-underline-offset:2px}
 
 /* install */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
-.step{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px}
-.step .n{font-family:Newsreader,Georgia,serif;font-size:44px;line-height:1;color:var(--link);font-style:italic}
-.step h4{margin:16px 0 6px;font-size:18px;font-weight:600}
-.step p{margin:0;color:var(--soft);font-size:15px}
-code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--sunk);padding:3px 7px;border-radius:7px;word-break:break-all}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px}
+.st{background:var(--card);border-radius:18px;padding:20px 22px 24px;min-height:190px;display:flex;flex-direction:column}
+.st small{color:var(--faint);font-size:12px}
+.st h3{font-size:19px;letter-spacing:-.03em;margin-top:auto}
+.st p{margin:6px 0 0;font-size:13.5px;color:var(--soft)}
+code{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card);padding:3px 7px;border-radius:6px;word-break:break-all}
+.tip{font-size:13px;color:var(--soft);margin-top:14px}
 
 /* faq */
-.faq{display:grid;grid-template-columns:1fr 1.6fr;gap:64px}
-details{border-top:1px solid var(--line)}
-details:last-child{border-bottom:1px solid var(--line)}
-summary{list-style:none;cursor:pointer;padding:20px 40px 20px 0;font-size:17.5px;font-weight:500;position:relative}
+.faq{display:grid;grid-template-columns:1fr 1.5fr;gap:48px}
+details{border-bottom:1px solid var(--line)}
+details:first-child{border-top:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;padding:18px 36px 18px 0;font-size:15.5px;font-weight:500;position:relative;letter-spacing:-.01em}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";position:absolute;right:4px;top:15px;font-size:24px;font-weight:300;color:var(--soft);transition:transform .2s}
+summary::after{content:"+";position:absolute;right:4px;top:14px;font-size:20px;font-weight:300;color:var(--soft);transition:transform .2s}
 details[open] summary::after{transform:rotate(45deg)}
-details p{margin:0 0 20px;color:var(--soft)}
+details p{margin:0 0 18px;color:var(--soft);font-size:14px}
+details a{text-decoration:underline;text-underline-offset:2px}
 
 /* closing */
-.closing{margin:0 auto 24px;max-width:1180px;border-radius:32px;background:var(--green);color:#fff;text-align:center;padding:96px 24px;position:relative;overflow:hidden}
-.closing::before{content:"";position:absolute;inset:auto -10% -60% -10%;height:120%;background:radial-gradient(closest-side,rgba(166,232,174,.35),transparent);pointer-events:none}
-.closing h2{color:#fff;position:relative}
-.closing h2 em{color:var(--mint)}
-.closing p{color:rgba(255,255,255,.75);position:relative;margin:16px 0 0;font-size:18px}
-.closing .ctas{position:relative}
-.closing .btn.dark{background:#fff;color:#123222}
-.closing .btn.ghost{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
-.closing .btn.ghost:hover{background:rgba(255,255,255,.08)}
-.closing .fine{color:rgba(255,255,255,.6);position:relative}
-footer{color:var(--faint);font-size:13px}
-footer .w{padding-top:28px;padding-bottom:36px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-footer a{color:var(--soft)}
+.end{margin:96px 12px 12px;border-radius:28px;background:var(--dark);color:var(--on-dark);padding:72px 24px;text-align:center}
+.end h2{margin:0;font-size:clamp(32px,4.4vw,52px)}
+.end p{color:var(--on-dark-soft);margin:14px 0 0}
+.end .btn.dark{background:var(--on-dark);color:var(--dark)}
+.end .btn.dark .arr{background:var(--dark);color:var(--on-dark)}
+.end .btn.plain{background:color-mix(in srgb,var(--on-dark) 10%,transparent);color:var(--on-dark)}
+.end .fine{color:var(--on-dark-soft)}
+footer .w{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:18px;padding-bottom:28px;font-size:12.5px;color:var(--faint)}
+footer a:hover{color:var(--ink)}
 
 /* download sheet */
-dialog{border:0;border-radius:24px;padding:0;max-width:440px;width:calc(100% - 32px);background:var(--card);color:var(--ink);box-shadow:0 40px 120px -20px rgba(0,0,0,.45)}
-dialog::backdrop{background:rgba(20,20,15,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.sheet{padding:32px 30px 26px}
-.sheet img{width:56px;height:56px;border-radius:13px;margin-bottom:16px}
-.sheet h3{font-size:28px;margin:0;line-height:1.1}
-.sheet .lead{font-size:15px;margin-top:8px}
-.sheet ol{list-style:none;padding:0;margin:20px 0 0;counter-reset:s}
-.sheet li{counter-increment:s;display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
-.sheet li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--mint-soft);color:var(--link);display:grid;place-items:center;font-size:12px;font-weight:600}
-.sheet .row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
-.sheet .btn{padding:10px 18px;font-size:14.5px}
+dialog{border:0;border-radius:22px;padding:0;max-width:420px;width:calc(100% - 32px);background:var(--page);color:var(--ink);box-shadow:0 40px 120px -20px rgba(0,0,0,.45)}
+dialog::backdrop{background:rgba(15,15,20,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet{padding:28px}
+.sheet img{width:52px;height:52px;border-radius:12px;margin-bottom:16px}
+.sheet h3{font-size:24px}
+.sheet p{color:var(--soft);margin:6px 0 0}
+.sheet ol{list-style:none;padding:0;margin:18px 0 0;counter-reset:s}
+.sheet li{counter-increment:s;display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
+.sheet li::before{content:"0" counter(s);flex:none;color:var(--faint);font-size:12px;padding-top:2px}
+.sheet .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.sheet .btn{height:40px;padding:0 16px}
 
-/* reveal */
-.rv{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
-.rv.in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
-
-@media (max-width:900px){
-  nav a.l{display:none}
-  .spot,.spot.rev{grid-template-columns:1fr;gap:32px}.spot.rev .copy{order:0}
-  .grid,.steps{grid-template-columns:1fr 1fr}
-  .faq{grid-template-columns:1fr;gap:24px}
-  section{padding:84px 0}
-  .stage{padding:24px 18px 0;border-radius:24px 24px 0 0}
+@media (max-width:980px){
+  .links{display:none}
+  .why{grid-template-columns:repeat(3,1fr)}
+  .whyc{grid-column:1/-1;padding:24px 0 0;order:-1}
 }
 @media (max-width:760px){
+  .feats,.shots,.steps,.faq{grid-template-columns:1fr}
+  .faq{gap:20px}
+  .fc{min-height:240px}
+  .why{grid-template-columns:1fr}
+  .num{min-height:0;display:grid;grid-template-columns:40px 1fr;column-gap:16px}
+  .num small{grid-column:1/-1;margin-bottom:12px}
+  .num .ic{grid-row:2/4;margin:0}
+  .num h3{margin:0}
+  .num p{min-height:0}
+  .aside{text-align:left}
   .pick{display:flex}
   table[data-show="otter"] .gr,table[data-show="otter"] .wf,
   table[data-show="granola"] .ot,table[data-show="granola"] .wf,
   table[data-show="wispr"] .ot,table[data-show="wispr"] .gr{display:none}
   table{table-layout:auto}
-  table[data-show="otter"] col.gr,table[data-show="otter"] col.wf,table[data-show="granola"] col.ot,table[data-show="granola"] col.wf,table[data-show="wispr"] col.ot,table[data-show="wispr"] col.gr{visibility:collapse}
-  th.rowh{width:30%}
-  td{width:35%}
-  .gl small{display:none}
-  th,td{padding:12px 10px;font-size:13.5px}
-  .flow{grid-template-columns:1fr;gap:10px}
+  tbody th{width:32%}
+  th,td{padding:14px 12px;font-size:13.5px}
 }
 @media (max-width:560px){
   .w{padding:0 16px}
-  .grid,.steps{grid-template-columns:1fr}
-  .hero{padding-top:44px}
-  .stage{margin-top:44px;padding:16px 12px 0}
-  .window .bar{height:20px}.window .bar i{width:8px;height:8px}
-  .closing{border-radius:0;padding:72px 16px}
-  .node{font-size:13px;padding:7px 10px}
+  .hero{margin:8px;border-radius:22px;padding-bottom:40px}
+  .hero::after{display:none}
+  .navr .btn.plain{display:none}
+  .htop{padding-top:32px}
+  .panel{margin-top:36px;padding:6px;border-radius:14px}
+  .panel img{border-radius:9px}
+  .shots{padding:14px}
+  section{padding-top:72px}
+  .end{margin:72px 8px 8px;padding:56px 18px}
 }
 </style>
 </head>
 <body>
-<nav><div class="w">
-  <a class="brand" href="#top"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>Matita</a>
-  <a class="l" href="#features">Features</a><a class="l" href="#compare">Compare</a><a class="l" href="#install">Install</a><a class="l" href="#faq">FAQ</a><a class="l" href="https://github.com/joonkiee/matita-transcriber">GitHub</a>
-  <a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-short">Download</span></a>
-</div></nav>
 
-<main id="top">
-  <div class="hero">
-    <div class="w">
-      <a class="news" href="#features"><b>New</b> Call recording with both sides, no bot →</a>
-      <h1 class="serif">Your recordings,<br><em>written down.</em></h1>
-      <p class="sub">Transcripts, summaries and notes from lectures, interviews, meetings and calls. Made on your Mac, saved as files you own. Free.</p>
-      <div class="ctas">
-        <a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.5-1-2.5-3.8zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4z"/></svg>
-          <span class="dl-label">Download for Mac</span></a>
-        <a class="btn ghost" href="https://github.com/joonkiee/matita-transcriber">View on GitHub</a>
-      </div>
-      <div class="fine"><span class="ver">Free and open source</span><span>macOS 14+</span><span>Apple Silicon</span></div>
-    </div>
-    <div class="stage rv">
-      <div class="window">
-        <div class="bar"><i></i><i></i><i></i></div>
-        <picture>
-          <source srcset="site/main-dark.webp" media="(prefers-color-scheme: dark)">
-          <img src="site/main-light.webp" alt="Matita: drop area, settings and the list of transcripts" width="2360" height="1520">
-        </picture>
-      </div>
-    </div>
-  </div>
+<div class="hero" id="top">
+  <div class="w">
+    <nav>
+      <a class="brand" href="#top"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>Matita</a>
+      <div class="links"><a href="#features">Features</a><a href="#compare">Compare</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
+      <div class="navr"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest">Download</a><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">GitHub</a></div>
+    </nav>
 
-  <div class="sources w">
-    <p>Picks up from where you already record</p>
-    <div class="chips">
-      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M10 10v4M12 8v8M14 11v2"/></svg>iPhone Voice Memos</span>
-      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3"/></svg>Zoom · Teams · Meet</span>
-      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Your Mac's microphone</span>
-      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Recorder SD cards &amp; folders</span>
-      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/></svg>Any audio or video file</span>
+    <div class="htop">
+      <div class="bubbles" aria-hidden="true">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18V7l6 7 6-7v11"/></svg></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 13h6M9 17h4"/></svg></span>
+      </div>
+      <h1>Your recordings <span class="chip g" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 10v4M10 6v12M14 8v8M18 11v2"/></svg></span><br>written down <span class="chip v" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></span> on your Mac</h1>
+      <p class="hsub">Transcripts, summaries and notes from meetings, lectures and calls. Free, open source, and no account.</p>
+      <div class="hcta">
+        <a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Download for Mac</span><span class="arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></span></a>
+      </div>
+      <div class="fine"><span class="ver">Free and open source</span><span>macOS 14 or later</span><span>Apple Silicon</span></div>
+    </div>
+
+    <div class="panel">
+      <picture>
+        <source srcset="site/main-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="site/main-light.webp" alt="Matita: drop area, settings and the list of transcripts" width="2360" height="1520">
+      </picture>
     </div>
   </div>
+</div>
 
-  <section id="features">
-    <div class="w">
-      <div class="head rv"><span class="eyebrow">What you get</span><h2 class="serif">Less replaying.<br><em>More reading.</em></h2></div>
-
-      <div class="spot">
-        <div class="copy rv">
-          <h3 class="serif">A summary waiting for you.</h3>
-          <p>Every recording comes back with an overview, an outline, takeaways and action items, plus three title ideas in the format you choose.</p>
-          <ul class="ticks"><li>On your Mac with Ollama, or with Claude if you prefer</li><li>Names like <i>2025-10-31 2pm Quarterly revenue review</i></li></ul>
-        </div>
-        <div class="shot rv"><picture><source srcset="site/reader-dark.webp" media="(prefers-color-scheme: dark)"><img src="site/reader-light.webp" alt="An AI summary with three title ideas" loading="lazy" width="2360" height="1520"></picture></div>
-      </div>
-
-      <div class="spot rev">
-        <div class="copy rv">
-          <h3 class="serif">Find the exact moment.</h3>
-          <p>Timestamps on every line, speakers you can name, and ⌘K search across everything you've ever recorded. Click a line to hear it.</p>
-          <ul class="ticks"><li>Who said what, labelled for you</li><li>Words the model wasn't sure about, highlighted</li></ul>
-        </div>
-        <div class="shot rv"><picture><source srcset="site/time-dark.webp" media="(prefers-color-scheme: dark)"><img src="site/time-light.webp" alt="A transcript with timestamps and an audio player" loading="lazy" width="2360" height="1520"></picture></div>
-      </div>
-
-      <div class="grid">
-        <div class="f rv"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18a8 8 0 0 1 16 0"/><rect x="3" y="16" width="5" height="8" rx="2"/><rect x="20" y="16" width="5" height="8" rx="2"/></svg><h4>Calls, both sides</h4><p>Records you and the other people in Zoom, Teams or Meet. No bot joins.</p></div>
-        <div class="f rv"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="12" height="22" rx="3"/><path d="M12 12v4M14 10v8M16 12.5v3"/></svg><h4>Voice Memos, on their own</h4><p>Record on your iPhone. The transcript is ready when you open your Mac.</p></div>
-        <div class="f rv"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h8l2 2h10v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M10 17h8"/></svg><h4>Watch folders</h4><p>Point it at a recorder's SD card or Zoom's folder. New files are picked up.</p></div>
-        <div class="f rv"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="14" r="10"/><path d="M4 14h20M14 4a15 15 0 0 1 0 20M14 4a15 15 0 0 0 0 20"/></svg><h4>About 100 languages</h4><p>Whisper for every language, including Korean. Parakeet for speed in English and 24 more.</p></div>
-        <div class="f rv"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h9l5 5v17H8z"/><path d="M17 3v5h5M12 14h6M12 18h6"/></svg><h4>Obsidian-ready notes</h4><p>Markdown with tags and links to related recordings, written into your vault.</p></div>
-        <div class="f rv"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="12" width="18" height="12" rx="3"/><path d="M9 12V9a5 5 0 0 1 10 0v3"/></svg><h4>Offline by design</h4><p>After the one-time model download, it works on a plane, with Wi-Fi off.</p></div>
+<main>
+  <section>
+    <div class="w why">
+      <div class="num"><small>/01</small><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>Stays on your Mac</h3><p>Speech recognition runs on your own machine. Your audio isn't uploaded.</p></div>
+      <div class="num"><small>/02</small><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></span><h3>Free, no limits</h3><p>No subscription, no minute caps, no account to make.</p></div>
+      <div class="num"><small>/03</small><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h6l2 2h8v10H4z"/></svg></span><h3>Plain files you keep</h3><p>Text, subtitles, Word and Markdown, saved in a folder you choose.</p></div>
+      <div class="whyc">
+        <span class="tag" style="align-self:flex-start">Why Matita</span>
+        <h2 style="margin-top:16px">A transcription app that works <mark>on your Mac</mark>, not on someone else's server.</h2>
+        <div class="hcta"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Download for Mac</span><span class="arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></span></a></div>
       </div>
     </div>
   </section>
 
-  <section id="compare" style="background:var(--sunk)">
+  <section id="features">
     <div class="w">
-      <div class="head c rv"><span class="eyebrow">Compare</span><h2 class="serif">Same job.<br><em>Different place.</em></h2>
-        <p class="lead">Otter, Granola and Wispr Flow are good tools that do their work in the cloud. Matita does it on your Mac. Here's where your audio goes, and how they compare across the life of a recording.</p></div>
-
-      <div class="flows">
-        <div class="flow me rv"><div class="name">Matita</div>
-          <div class="lane"><span class="zone"><span class="node mac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/></svg>Your audio</span><span class="arrow">→</span><span class="node mac">Transcribed</span><span class="arrow">→</span><span class="node mac">Summarised</span><span class="arrow">→</span><span class="node mac">Files in your folder</span></span></div></div>
-        <div class="flow rv"><div class="name">Otter</div>
-          <div class="lane"><span class="node">Your audio</span><span class="arrow">→</span><span class="node cloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z"/></svg>Otter's cloud</span><span class="arrow">→</span><span class="node">Otter's app</span></div></div>
-        <div class="flow rv"><div class="name">Granola</div>
-          <div class="lane"><span class="node">Your audio</span><span class="arrow">→</span><span class="node cloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z"/></svg>A transcription provider</span><span class="arrow">→</span><span class="node">Granola's app</span></div></div>
-        <div class="flow rv"><div class="name">Wispr Flow</div>
-          <div class="lane"><span class="node">Your voice</span><span class="arrow">→</span><span class="node cloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z"/></svg>Wispr's servers</span><span class="arrow">→</span><span class="node">Text where you type</span></div></div>
+      <div class="split">
+        <div><span class="tag">Features</span><h2>Every kind of<br>recording <span class="chip g" style="font-size:.9em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 10v4M10 6v12M14 8v8M18 11v2"/></svg></span> covered</h2></div>
+        <p class="aside">Korean, English, Japanese, Chinese, French, Spanish and German, or let Whisper detect the language. Parakeet is the fast option for English, French, Spanish and German.</p>
+      </div>
+      <div class="feats">
+        <div class="fc">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3"/></svg></span>
+          <h3>Meetings and calls</h3>
+          <p>Records you and the other people in Zoom, Teams or Meet, then labels who said what. No bot joins the call.</p>
+          <div class="foot"><div class="pills"><span>Zoom</span><span>Teams</span><span>Meet</span><span>Speaker names</span></div></div>
+        </div>
+        <div class="fc dk">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg></span>
+          <h3>Summaries and notes</h3>
+          <p>An overview, action items and three title ideas for every recording. Made on your Mac with Ollama, or with Claude if you choose. Notes can go straight into Obsidian.</p>
+          <div class="foot"><div class="pills"><span>Ollama</span><span>Claude</span><span>Obsidian</span></div></div>
+        </div>
+        <div class="fc">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M10 10v4M12 8v8M14 11v2"/></svg></span>
+          <h3>Lectures and voice memos</h3>
+          <p>Record with your Mac's microphone, or on your iPhone with Voice Memos. New memos are transcribed when they reach your Mac.</p>
+          <div class="foot"><div class="pills"><span>Microphone</span><span>Voice Memos</span></div></div>
+        </div>
+        <div class="fc">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7l2 2h9v10H3z"/></svg></span>
+          <h3>Recordings you already have</h3>
+          <p>Drop in any audio or video file, or point Matita at a folder, such as a recorder's SD card, and new files are picked up.</p>
+          <div class="foot"><div class="pills"><span>.m4a</span><span>.mp3</span><span>.wav</span><span>.mp4</span><span>Watch folders</span></div></div>
+        </div>
       </div>
 
-      <div class="cmpwrap rv">
-        <div class="pick" role="group" aria-label="Compare Matita with"><span>Compare with</span><button data-show="otter" aria-pressed="true">Otter</button><button data-show="granola" aria-pressed="false">Granola</button><button data-show="wispr" aria-pressed="false">Wispr Flow</button></div>
+      <div class="shots">
+        <figure><picture><source srcset="site/reader-dark.webp" media="(prefers-color-scheme: dark)"><img src="site/reader-light.webp" alt="An AI summary with three title ideas" loading="lazy" width="2360" height="1520"></picture><figcaption><b>Read instead of replaying.</b> The summary is ready when the transcript is.</figcaption></figure>
+        <figure><picture><source srcset="site/time-dark.webp" media="(prefers-color-scheme: dark)"><img src="site/time-light.webp" alt="A transcript with timestamps and an audio player" loading="lazy" width="2360" height="1520"></picture><figcaption><b>Find the moment.</b> Every line has a timestamp. Click it to hear that part.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <div class="w">
+      <div class="split">
+        <div><span class="tag">Compare</span><h2>How Matita compares</h2></div>
+        <p class="aside">Otter, Granola and Wispr Flow are cloud services. Here is what that changes.</p>
+      </div>
+      <div class="cmp">
+        <div class="pick" role="group" aria-label="Compare Matita with"><button data-show="otter" aria-pressed="true">Otter</button><button data-show="granola" aria-pressed="false">Granola</button><button data-show="wispr" aria-pressed="false">Wispr Flow</button></div>
         <table id="cmp" data-show="otter">
-          <colgroup><col><col class="mc"><col class="ot"><col class="gr"><col class="wf"></colgroup>
-          <thead><tr><th class="rowh"></th><th class="mc">Matita<small>Free · open source</small></th><th class="ot">Otter<small>Meeting notes</small></th><th class="gr">Granola<small>Meeting notepad</small></th><th class="wf">Wispr Flow<small>Voice dictation</small></th></tr></thead>
+          <thead><tr><th></th><th class="mc">Matita</th><th class="ot">Otter</th><th class="gr">Granola</th><th class="wf">Wispr Flow</th></tr></thead>
           <tbody>
-            <tr class="grp"><th colspan="5"><div class="gl"><b>1</b><span>Capture</span><small>What it can take in</small></div></th></tr>
-            <tr><th class="rowh">Files you already have</th><td class="mc"><div class="m y"><i>✓</i>Any audio or video, no limit</div></td><td class="ot"><div class="m p"><i></i>3 imports on the free plan</div></td><td class="gr"><div class="m n"><i>—</i>Live meetings only</div></td><td class="wf"><div class="m n"><i>—</i>Live dictation only</div></td></tr>
-            <tr><th class="rowh">Online meetings</th><td class="mc"><div class="m y"><i>✓</i>Both sides, no bot</div></td><td class="ot"><div class="m y"><i>✓</i>A bot joins the call</div></td><td class="gr"><div class="m y"><i>✓</i>Both sides, no bot</div></td><td class="wf"><div class="m n"><i>—</i>Not for meetings</div></td></tr>
-            <tr><th class="rowh">Lectures and in-person talks</th><td class="mc"><div class="m y"><i>✓</i>Mic, or Voice Memos from iPhone</div></td><td class="ot"><div class="m y"><i>✓</i>Its own apps</div></td><td class="gr"><div class="m y"><i>✓</i>Its own apps</div></td><td class="wf"><div class="m n"><i>—</i>Not for recording</div></td></tr>
-            <tr><th class="rowh">Typing by voice in any app</th><td class="mc"><div class="m n"><i>—</i>Not what it's for</div></td><td class="ot"><div class="m n"><i>—</i>No</div></td><td class="gr"><div class="m n"><i>—</i>No</div></td><td class="wf"><div class="m y"><i>✓</i>What it's built for</div></td></tr>
-
-            <tr class="grp"><th colspan="5"><div class="gl"><b>2</b><span>Processing</span><small>Where the work happens</small></div></th></tr>
-            <tr><th class="rowh">Speech recognition</th><td class="mc"><div class="m y"><i>✓</i>On your Mac</div></td><td class="ot"><div class="m c"><i></i>In the cloud</div></td><td class="gr"><div class="m c"><i></i>In the cloud</div></td><td class="wf"><div class="m c"><i></i>In the cloud</div></td></tr>
-            <tr><th class="rowh">AI summaries</th><td class="mc"><div class="m y"><i>✓</i>On your Mac, or Claude if you choose</div></td><td class="ot"><div class="m c"><i></i>In the cloud</div></td><td class="gr"><div class="m c"><i></i>In the cloud</div></td><td class="wf"><div class="m n"><i>—</i>Polishes text, no summaries</div></td></tr>
-            <tr><th class="rowh">Works offline</th><td class="mc"><div class="m y"><i>✓</i>Yes</div></td><td class="ot"><div class="m n"><i>—</i>Needs internet</div></td><td class="gr"><div class="m n"><i>—</i>Needs internet</div></td><td class="wf"><div class="m n"><i>—</i>Needs internet</div></td></tr>
-
-            <tr class="grp"><th colspan="5"><div class="gl"><b>3</b><span>Output</span><small>What you're left with</small></div></th></tr>
-            <tr><th class="rowh">Where transcripts live</th><td class="mc"><div class="m y"><i>✓</i>Plain files in your folder (.txt, .srt, Markdown, Word)</div></td><td class="ot"><div class="m p"><i></i>In Otter's app</div></td><td class="gr"><div class="m p"><i></i>In Granola's app</div></td><td class="wf"><div class="m y"><i>✓</i>In the app you typed in</div></td></tr>
-            <tr><th class="rowh">The original audio</th><td class="mc"><div class="m y"><i>✓</i>Stays on your Mac</div></td><td class="ot"><div class="m c"><i></i>Stored in Otter's cloud</div></td><td class="gr"><div class="m n"><i>—</i>Not kept</div></td><td class="wf"><div class="m n"><i>—</i>Not kept in Privacy Mode</div></td></tr>
-
-            <tr class="grp"><th colspan="5"><div class="gl"><b>4</b><span>Access</span><small>What it takes to use it</small></div></th></tr>
-            <tr><th class="rowh">Free plan</th><td class="mc"><div class="m y"><i>✓</i>Everything, no limits</div></td><td class="ot"><div class="m p"><i></i>300 min a month, 30 min each</div></td><td class="gr"><div class="m p"><i></i>Notes from the last 14 days</div></td><td class="wf"><div class="m p"><i></i>2,000 words a week</div></td></tr>
-            <tr><th class="rowh">Paid plan</th><td class="mc"><div class="m y"><i>✓</i>None. It's free</div></td><td class="ot">From $8.33 a month, billed yearly</td><td class="gr">$14 a user a month</td><td class="wf">$15 a month</td></tr>
-            <tr><th class="rowh">Account</th><td class="mc"><div class="m y"><i>✓</i>Not needed</div></td><td class="ot">Required</td><td class="gr">Required</td><td class="wf">Required</td></tr>
-            <tr><th class="rowh">Runs on</th><td class="mc">Mac with Apple Silicon</td><td class="ot">Web, iPhone, Android</td><td class="gr">Mac, Windows, iPhone</td><td class="wf">Mac, Windows, iPhone, Android</td></tr>
+            <tr><th>Where speech becomes text</th><td class="mc">On your Mac</td><td class="ot">Otter's cloud</td><td class="gr">A cloud transcription provider</td><td class="wf">Wispr's cloud</td></tr>
+            <tr><th>Files you already have</th><td class="mc">Any audio or video file</td><td class="ot">3 files on the free plan</td><td class="gr">Not supported</td><td class="wf">Not supported</td></tr>
+            <tr><th>Free plan</th><td class="mc">Everything, no limits</td><td class="ot">300 minutes a month, 30 minutes per conversation</td><td class="gr">Meeting history for 30 days</td><td class="wf">2,000 words of dictation a week</td></tr>
+            <tr><th>Paid plan</th><td class="mc">None</td><td class="ot">$16.99 a month, or $8.33 a month billed yearly</td><td class="gr">$14 per user a month</td><td class="wf">$15 a month, or $12 a month billed yearly</td></tr>
+            <tr><th>Account</th><td class="mc">Not needed</td><td class="ot">Required</td><td class="gr">Required</td><td class="wf">Required</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="legend"><span class="m y"><i>✓</i>Yes</span><span class="m p"><i></i>Partly or limited</span><span class="m c"><i></i>Cloud</span><span class="m n"><i>—</i>No</span></div>
-      <p class="src">Other products as described on their own websites and help pages, November 2026. Prices in US dollars.</p>
+      <p class="note">Checked on 5 November 2026 against <a href="https://otter.ai/pricing">Otter pricing</a>, <a href="https://www.granola.ai/pricing">Granola pricing</a> and <a href="https://docs.granola.ai/help-center/taking-notes/transcription">help</a>, and <a href="https://wisprflow.ai/pricing">Wispr Flow pricing</a> and <a href="https://docs.wisprflow.ai/articles/7689167034-can-i-upload-audio-files-to-wispr-flow-for-transcription">help</a>. Prices in US dollars, per user, before tax. They may have changed since.</p>
     </div>
   </section>
 
   <section id="install">
     <div class="w">
-      <div class="head rv"><span class="eyebrow">Install</span><h2 class="serif">Up and running<br><em>in a minute.</em></h2>
-        <p class="lead">Matita is free, so it isn't signed with a paid Apple Developer ID. macOS asks you to confirm once.</p></div>
+      <div class="split">
+        <div><span class="tag">Install</span><h2>Running in a minute</h2></div>
+        <p class="aside">Matita isn't signed with a paid Apple Developer ID, so macOS asks you to confirm once.</p>
+      </div>
       <div class="steps">
-        <div class="step rv"><div class="n">1</div><h4>Download and drag</h4><p>Open the .dmg and drag Matita into Applications.</p></div>
-        <div class="step rv"><div class="n">2</div><h4>Open it once</h4><p>macOS says it can't check the app. Click <b>Done</b>.</p></div>
-        <div class="step rv"><div class="n">3</div><h4>Open Anyway</h4><p><b>System Settings → Privacy &amp; Security</b>, scroll down, click <b>Open Anyway</b>. That's it, for good.</p></div>
+        <div class="st"><small>/01</small><h3>Download and drag</h3><p>Open the .dmg and drag Matita into Applications.</p></div>
+        <div class="st"><small>/02</small><h3>Open it once</h3><p>macOS says it can't check the app. Click <b>Done</b>.</p></div>
+        <div class="st"><small>/03</small><h3>Open Anyway</h3><p>System Settings → Privacy &amp; Security, then <b>Open Anyway</b>. You only do this once.</p></div>
       </div>
-      <p style="margin-top:22px;color:var(--soft);font-size:14px">Prefer Terminal? <code>xattr -dr com.apple.quarantine /Applications/Matita.app</code></p>
+      <p class="tip">Prefer Terminal? <code>xattr -dr com.apple.quarantine /Applications/Matita.app</code></p>
     </div>
   </section>
 
-  <section id="faq" style="padding-top:24px">
+  <section id="faq">
     <div class="w faq">
-      <div class="rv"><span class="eyebrow">FAQ</span><h2 class="serif">Questions,<br><em>answered.</em></h2></div>
+      <div><span class="tag">FAQ</span><h2>Questions</h2></div>
       <div>
-        <details><summary>Does anything leave my Mac?</summary><p>Your audio and transcripts don't. Matita goes online only to download a speech model the first time, to check GitHub for a new version, and, only if you pick Claude for summaries, to send a transcript to Anthropic.</p></details>
+        <details><summary>Does anything leave my Mac?</summary><p>Your audio and transcripts don't. Matita goes online to download a speech model the first time, to check GitHub for a new version, and, only if you choose Claude for summaries, to send the transcript to Anthropic.</p></details>
         <details><summary>How much space does it need?</summary><p>About 100 MB for the app, plus one speech model on first use: 640 MB (Parakeet), 870 MB (Turbo 8-bit) or 1.6 GB (Turbo).</p></details>
-        <details><summary>Does it run on Intel Macs or Windows?</summary><p>Not this version. Matita needs a Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later. Recording other apps' sound needs macOS 14.2.</p></details>
-        <details><summary>Why does macOS warn me the first time?</summary><p>Apple shows that warning for every app that isn't signed with a paid Developer ID. Matita's source is public, and each version is built from it on GitHub. Follow the three steps above once.</p></details>
-        <details><summary>How do I remove it?</summary><p>Quit Matita and drag it to the Trash. Models are in ~/whisper-models and settings in ~/whisper-app if you want those gone too. Your transcripts stay in your Transcripts folder.</p></details>
-        <details><summary>Can I help?</summary><p>Yes. Report problems or share ideas on <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">GitHub</a>, or give the project a star.</p></details>
+        <details><summary>Does it run on Intel Macs or Windows?</summary><p>No. Matita needs a Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later. Recording the sound of other apps needs macOS 14.2.</p></details>
+        <details><summary>Why does macOS warn me the first time?</summary><p>macOS shows that warning for any app that isn't signed with a paid Developer ID. Matita's source is public, and each version is built from it on GitHub.</p></details>
+        <details><summary>How do I remove it?</summary><p>Quit Matita and drag it to the Trash. Models are in ~/whisper-models and settings in ~/whisper-app. Your transcripts stay in your Transcripts folder.</p></details>
+        <details><summary>How can I help?</summary><p>Report problems or share ideas on <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">GitHub</a>, or give the project a star.</p></details>
       </div>
     </div>
   </section>
-
-  <div class="closing">
-    <h2 class="serif rv">Give your recordings<br><em>a pencil.</em></h2>
-    <p class="rv">Free, private, and yours to keep.</p>
-    <div class="ctas rv"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Download for Mac</span></a><a class="btn ghost" href="https://github.com/joonkiee/matita-transcriber">View on GitHub</a></div>
-    <div class="fine"><span class="ver">Free and open source</span><span>macOS 14+</span><span>Apple Silicon</span></div>
-  </div>
 </main>
 
+<div class="end">
+  <h2>Try it on your next recording</h2>
+  <p>Free and open source. No account.</p>
+  <div class="hcta"><a class="btn dark dl" href="https://github.com/joonkiee/matita-transcriber/releases/latest"><span class="dl-label">Download for Mac</span><span class="arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></span></a><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">View on GitHub</a></div>
+  <div class="fine"><span class="ver">Free and open source</span><span>macOS 14 or later</span><span>Apple Silicon</span></div>
+</div>
+
 <footer><div class="w">
-  <span>Matita · MIT licence · Built with whisper.cpp, sherpa-onnx and FFmpeg. Not affiliated with Apple, Otter, Granola or Wispr.</span>
+  <span>Matita · MIT licence · Built with whisper.cpp, sherpa-onnx and FFmpeg</span>
   <span><a href="https://github.com/joonkiee/matita-transcriber">GitHub</a> · <a href="https://github.com/joonkiee/matita-transcriber/releases">Releases</a> · <a href="https://github.com/joonkiee/matita-transcriber/issues/new/choose">Report a problem</a></span>
 </div></footer>
 
 <dialog id="after" aria-labelledby="afterTitle"><div class="sheet">
   <img src="icon.png" alt="">
-  <h3 id="afterTitle" class="serif">Your download is starting.</h3>
-  <p class="lead">Then, three quick steps:</p>
+  <h3 id="afterTitle">Your download has started</h3>
+  <p>Then:</p>
   <ol>
     <li>Open <b id="afterFile">the .dmg</b> and drag Matita into Applications.</li>
     <li>Open Matita. When macOS says it can't check it, click <b>Done</b>.</li>
     <li>System Settings → Privacy &amp; Security → <b>Open Anyway</b>.</li>
   </ol>
-  <div class="row"><a class="btn ghost" href="https://github.com/joonkiee/matita-transcriber">Star on GitHub</a><button class="btn dark" data-close>Got it</button></div>
+  <div class="row"><a class="btn plain" href="https://github.com/joonkiee/matita-transcriber">Star on GitHub</a><button class="btn dark" style="padding:0 18px" data-close>Got it</button></div>
 </div></dialog>
 
 <dialog id="notmac" aria-labelledby="notmacTitle"><div class="sheet">
   <img src="icon.png" alt="">
-  <h3 id="notmacTitle" class="serif">Matita is a Mac app.</h3>
-  <p class="lead">It needs a Mac with Apple Silicon. Send yourself the link and download it there.</p>
-  <div class="row"><button class="btn ghost" id="copyLink">Copy link</button><a class="btn dark" id="mailLink" href="#">Email me the link</a></div>
+  <h3 id="notmacTitle">Matita is a Mac app</h3>
+  <p>It needs a Mac with Apple Silicon. Send yourself the link and download it there.</p>
+  <div class="row"><button class="btn plain" id="copyLink">Copy link</button><a class="btn dark" style="padding:0 18px" id="mailLink" href="#">Email me the link</a></div>
 </div></dialog>
 
 <script>
@@ -469,11 +436,6 @@ dialog::backdrop{background:rgba(20,20,15,.4);backdrop-filter:blur(6px);-webkit-
     cmp.dataset.show = b.dataset.show;
     document.querySelectorAll(".pick button").forEach(x => x.setAttribute("aria-pressed", x === b));
   });
-
-  // sections fade in as they scroll into view
-  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(x => {
-    if (x.isIntersecting){ x.target.classList.add("in"); io.unobserve(x.target); } }), {rootMargin: "0px 0px -8% 0px"}) : null;
-  document.querySelectorAll(".rv").forEach(el => io ? io.observe(el) : el.classList.add("in"));
 })();
 </script>
 </body>
