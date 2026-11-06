@@ -113,7 +113,8 @@ jobs:
       - name: Smoke test - tools and a real transcription
         shell: powershell          # Windows PowerShell 5.1 has System.Speech for a test recording
         run: |
-          $ErrorActionPreference = "Stop"
+          # 5.1 turns anything a program writes to stderr into an error under "Stop"; whisper-cli logs there
+          $ErrorActionPreference = "Continue"
           $App = "dist\Matita"
           & "$App\bin\ffmpeg.exe" -hide_banner -version | Select-Object -First 1
           $help = & "$App\bin\whisper-cli.exe" --help 2>&1 | Out-String
