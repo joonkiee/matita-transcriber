@@ -5,3 +5,8 @@ __pycache__/
 *.part
 .build/
 dist/
+
+# Windows build
+.build-win/
+node_modules/
+ui-smoke.png

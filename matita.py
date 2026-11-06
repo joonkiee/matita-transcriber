@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Matita Transcriber — a local whisper.cpp app for macOS
+Matita Transcriber — a local whisper.cpp app for macOS (and, from 3.22, Windows)
 
 Install:     /usr/bin/python3 ~/Downloads/stt_app.py --install
              Runs quietly in the background (starts at login, no Terminal window)
@@ -34,22 +34,53 @@ import urllib.parse
 import uuid
 import webbrowser
 import zipfile
+import ctypes
 from xml.sax.saxutils import escape as xml_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = "3.21.0"
+VERSION = "3.22.0"
 REPO = "joonkiee/matita-transcriber"   # GitHub "owner/name", used for update checks
+WIN = os.name == "nt"
 # Set by Matita.app (the downloadable Mac app), which carries its own Python, whisper-cli, ffmpeg and
 # the Matita Audio helper. Without it, Matita runs the older way: a LaunchAgent plus Homebrew tools.
+# On Windows the installed app is a folder: matita.py next to python\ and bin\ (whisper-cli, ffmpeg).
 BUNDLE = os.environ.get("MATITA_APP_BUNDLE") or None
-BUNDLE_BIN = os.path.join(BUNDLE, "Contents", "Resources", "bin") if BUNDLE else None
+if WIN and not BUNDLE and os.path.isdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")):
+    BUNDLE = os.path.dirname(os.path.abspath(__file__))
+BUNDLE_BIN = (os.path.join(BUNDLE, "bin") if WIN else os.path.join(BUNDLE, "Contents", "Resources", "bin")) if BUNDLE else None
 NAME = "Matita"
 PORT = 8765
 HOME = os.path.expanduser("~")
-MODEL_DIR = os.path.join(HOME, "whisper-models")
+
+
+def documents_dir():
+    """The Documents folder (on Windows it may have moved, e.g. into OneDrive)."""
+    if WIN:
+        try:
+            from ctypes import wintypes
+            class GUID(ctypes.Structure):
+                _fields_ = [("a", wintypes.DWORD), ("b", wintypes.WORD), ("c", wintypes.WORD), ("d", ctypes.c_ubyte * 8)]
+            docs = GUID(0xFDD39AD0, 0x238F, 0x46AF, (ctypes.c_ubyte * 8)(0xAD, 0xB4, 0x6C, 0x85, 0x48, 0x03, 0x69, 0xC7))
+            out = ctypes.c_wchar_p()
+            if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(docs), 0, None, ctypes.byref(out)) == 0:
+                path = out.value
+                ctypes.windll.ole32.CoTaskMemFree(out)
+                if path and os.path.isdir(path):
+                    return path
+        except Exception:
+            pass
+    return os.path.join(HOME, "Documents")
+
+
+if WIN:     # Windows keeps app data under %LOCALAPPDATA%\Matita
+    APP_DIR = os.path.join(os.environ.get("LOCALAPPDATA") or os.path.join(HOME, "AppData", "Local"), "Matita")
+    MODEL_DIR = os.path.join(APP_DIR, "models")
+    os.environ["PYTHONUTF8"] = "1"          # helpers we start (speakers, Parakeet) read and write UTF-8
+else:
+    APP_DIR = os.path.join(HOME, "whisper-app")
+    MODEL_DIR = os.path.join(HOME, "whisper-models")
 DEFAULT_MODEL = "ggml-large-v3-turbo.bin"
-OUT_DIR = os.path.join(HOME, "Documents", "Transcripts")
-APP_DIR = os.path.join(HOME, "whisper-app")
+OUT_DIR = os.path.join(documents_dir(), "Transcripts")
 LABEL = "com.local.matita"
 OLD_LABELS = ["com.local.transcriber"]          # the app was called Transcriber before 3.0
 AGENT_PLIST = os.path.join(HOME, "Library", "LaunchAgents", LABEL + ".plist")
@@ -63,7 +94,7 @@ URL = "http://127.0.0.1:%d/" % PORT
 LANGS = ("en", "auto", "ko", "fr", "es", "de", "zh", "ja")
 MODEL_URL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/"
 SPK_ENV = os.path.join(APP_DIR, "speakers-env")
-SPK_PY = os.path.join(SPK_ENV, "bin", "python3")
+SPK_PY = os.path.join(SPK_ENV, "Scripts", "python.exe") if WIN else os.path.join(SPK_ENV, "bin", "python3")
 SPK_DIR = os.path.join(MODEL_DIR, "speakers")
 SEG_MODEL = os.path.join(SPK_DIR, "segmentation.onnx")
 EMB_MODEL = os.path.join(SPK_DIR, "embedding.onnx")          # older installs: 3D-Speaker ERes2Net
@@ -81,7 +112,16 @@ SEG_URL = ("https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segm
 EMB_URL = ("https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/"
            "3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx")
 
-if BUNDLE:          # the app's own tools first; Homebrew only for extras such as Ollama
+if WIN:
+    if BUNDLE:
+        os.environ["PATH"] = BUNDLE_BIN + os.pathsep + os.environ.get("PATH", "")
+    # pythonw has no console; without this every whisper/ffmpeg run would flash a black window
+    class _QuietPopen(subprocess.Popen):
+        def __init__(self, *a, **k):
+            k.setdefault("creationflags", 0x08000000)       # CREATE_NO_WINDOW
+            super().__init__(*a, **k)
+    subprocess.Popen = _QuietPopen
+elif BUNDLE:          # the app's own tools first; Homebrew only for extras such as Ollama
     os.environ["PATH"] = BUNDLE_BIN + ":/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin"
 else:
     os.environ["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + os.environ.get("PATH", "")
@@ -97,7 +137,8 @@ def find_bin(*names):
 
 CAFFEINATE = find_bin("caffeinate")
 OSASCRIPT = find_bin("osascript")
-CURL = find_bin("curl") or "/usr/bin/curl"
+CURL = find_bin("curl") or ("curl.exe" if WIN else "/usr/bin/curl")
+POWERSHELL = find_bin("powershell") if WIN else None
 
 
 def refresh_bins():
@@ -113,7 +154,7 @@ refresh_bins()
 
 
 CONFIG = os.path.join(APP_DIR, "config.json")
-DEFAULT_OUT = os.path.join(HOME, "Documents", "Transcripts")
+DEFAULT_OUT = OUT_DIR
 
 
 def load_config():
@@ -271,6 +312,8 @@ def clean_quality(q):
 
 
 DL_LOCK = threading.Lock()
+# characters a file name can't have: macOS forbids / and : (shown as /); Windows also \ * ? " < > |
+BAD_NAME = r'[/:\\*?"<>|\x00-\x1f]' if WIN else r"[/:\x00-\x1f]"
 
 
 def ensure_file(url, dest, on_progress=None, jid=None):
@@ -283,7 +326,7 @@ def ensure_file(url, dest, on_progress=None, jid=None):
         part = dest + ".part"
         if jid and state_of(jid) == "cancelled":    # cancelled while waiting for another download
             return                                  # (the caller sees the cancel and stops)
-        p = subprocess.Popen([CURL, "-L", "--fail", "-s", "--speed-limit", "1024", "--speed-time", "60", "-o", part, url])
+        p = subprocess.Popen([CURL, "-L", "--fail", "-s", "--speed-limit", "1024", "--speed-time", "60", "-o", cli_path(part), url])
         DOWNLOADS.add(p.pid)
         if jid:
             with LOCK:
@@ -366,10 +409,37 @@ ORDER = []
 PROCS = {}
 SIDE = {}          # speaker identification running alongside the transcription
 AWAKE = {}         # caffeinate while the page is recording (and while a job runs)
+WIN_AWAKE = {"job": False, "rec": 0.0}     # Windows: what wants the PC awake (see win_awake_loop)
+
+
+def win_awake_loop():
+    """Windows has no caffeinate: every 30 s, tell Windows the system is in use while there's a job
+    or a recording. Asking without ES_CONTINUOUS just resets the idle timer, so nothing is left on."""
+    while True:
+        if WIN_AWAKE["job"] or WIN_AWAKE["rec"] > time.time():
+            try:
+                ctypes.windll.kernel32.SetThreadExecutionState(0x00000001)      # ES_SYSTEM_REQUIRED
+            except Exception:
+                pass
+        time.sleep(30)
 RUNNING = threading.Event()   # cleared while the queue is paused
 RUNNING.set()
 PAUSE = {"since": None}
 DOWNLOADS = set()             # curl processes; downloads keep going while paused
+
+
+def freeze(pid, on):
+    """Pause (on=True) or continue a process where it is. Windows has no SIGSTOP; it suspends the threads."""
+    try:
+        if WIN:
+            h = ctypes.windll.kernel32.OpenProcess(0x0800, False, pid)      # PROCESS_SUSPEND_RESUME
+            if h:
+                (ctypes.windll.ntdll.NtSuspendProcess if on else ctypes.windll.ntdll.NtResumeProcess)(h)
+                ctypes.windll.kernel32.CloseHandle(h)
+        else:
+            os.kill(pid, signal.SIGSTOP if on else signal.SIGCONT)
+    except (OSError, AttributeError):
+        pass
 
 
 def stop_proc(p):
@@ -377,9 +447,10 @@ def stop_proc(p):
     if p and p.poll() is None:
         try:
             p.terminate()
-            os.kill(p.pid, signal.SIGCONT)
         except OSError:
             pass
+        if not WIN:
+            freeze(p.pid, False)
 
 
 def register(jid, p, table=None):
@@ -391,10 +462,7 @@ def register(jid, p, table=None):
         if (JOBS.get(jid) or {}).get("state") == "cancelled":
             stop_proc(p)
         elif not RUNNING.is_set() and p.poll() is None:
-            try:
-                os.kill(p.pid, signal.SIGSTOP)
-            except OSError:
-                pass
+            freeze(p.pid, True)
 
 
 # ---------------------------------------------------------------- keep going with the lid closed (optional)
@@ -532,6 +600,7 @@ def keep_awake(on):
     with LOCK:
         busy = any(JOBS[j]["state"] in ACTIVE for j in ORDER if j in JOBS)
         old = AWAKE.pop("job", None)
+        WIN_AWAKE["job"] = bool(on and busy and RUNNING.is_set())
         if on and busy and RUNNING.is_set() and CAFFEINATE:
             AWAKE["job"] = subprocess.Popen([CAFFEINATE, "-i", "-w", str(os.getpid())])
     if old and old.poll() is None:
@@ -557,10 +626,7 @@ def set_paused(on):
                     j["started"] += gap
             RUNNING.set()
         for x in procs:                             # signal under the lock (os.kill doesn't block)
-            try:
-                os.kill(x.pid, signal.SIGSTOP if on else signal.SIGCONT)
-            except OSError:
-                pass
+            freeze(x.pid, on)
     keep_awake(not on)                              # let the Mac sleep while paused
 LOCK = threading.Lock()
 Q = queue.Queue()
@@ -726,7 +792,7 @@ def download(url, dest, name, weight=1.0, base=0.0):
     """Download with curl (it uses the Mac's own certificates), reporting progress into TASKS[name]."""
     total = remote_size(url)
     part = dest + ".part"
-    p = subprocess.Popen([CURL, "-L", "--fail", "-s", "--speed-limit", "1024", "--speed-time", "60", "-o", part, url])
+    p = subprocess.Popen([CURL, "-L", "--fail", "-s", "--speed-limit", "1024", "--speed-time", "60", "-o", cli_path(part), url])
     while p.poll() is None:
         if total and os.path.exists(part):
             pct = base + weight * 100 * os.path.getsize(part) / total
@@ -789,6 +855,8 @@ def install_sherpa(say, log="speakers"):
 
 def _install_sherpa(say, log):
     py = sys.executable if BUNDLE else ("/usr/bin/python3" if os.path.exists("/usr/bin/python3") else sys.executable)
+    if WIN and os.path.basename(py).lower() == "pythonw.exe":      # the console-less one can't report errors
+        py = os.path.join(os.path.dirname(py), "python.exe")
     healthy = os.path.exists(SPK_PY) and subprocess.run(
         [SPK_PY, "-c", "import sys"], capture_output=True).returncode == 0
     if not healthy:
@@ -915,7 +983,8 @@ def latest_release():
     if r.returncode != 0:
         raise RuntimeError("Couldn't reach GitHub.")
     d = json.loads(r.stdout.decode("utf-8"))
-    dmg = next((a.get("browser_download_url") for a in d.get("assets") or [] if str(a.get("name", "")).endswith(".dmg")), None)
+    want = "-setup.exe" if WIN else ".dmg"           # the Windows installer, or the Mac disk image
+    dmg = next((a.get("browser_download_url") for a in d.get("assets") or [] if str(a.get("name", "")).endswith(want)), None)
     return str(d.get("tag_name") or "").lstrip("v"), d.get("html_url"), dmg
 
 
@@ -946,8 +1015,9 @@ def update_loop():
 def apply_update():
     if BUNDLE:      # the app updates by downloading the new .dmg
         url = UPDATE.get("dmg") or UPDATE.get("page") or "https://github.com/%s/releases/latest" % REPO
-        subprocess.run(["open", url])
-        task("update", state="done", progress=100, message="Downloading the new Matita. Open it and drag Matita to Applications.")
+        os_open(url)
+        task("update", state="done", progress=100, message="Downloading the new Matita. Run the installer to update." if WIN
+             else "Downloading the new Matita. Open it and drag Matita to Applications.")
         return
     task("update", state="running", progress=10, message="Downloading the new version…")
     try:
@@ -1570,7 +1640,7 @@ def claude_request(path, body=None, key=None):
         fd = os.open(hfile, os.O_WRONLY | os.O_CREAT, 0o600)
         with os.fdopen(fd, "w") as fh:
             fh.write("x-api-key: %s\nanthropic-version: 2023-06-01\ncontent-type: application/json\n" % key)
-        cmd = [CURL, "-sS", "--max-time", "600", "-H", "@" + hfile]
+        cmd = [CURL, "-sS", "--max-time", "600", "-H", "@" + cli_path(hfile)]
         if body is not None:
             cmd += ["--data-binary", "@-"]
         r = subprocess.run(cmd + ["https://api.anthropic.com" + path], capture_output=True, text=True,
@@ -2227,6 +2297,8 @@ def srt_duration(path):
 
 
 def notify(title, message):
+    if WIN:                                         # the page shows its own message on Windows
+        return
     if not OSASCRIPT:
         return
     try:
@@ -2325,15 +2397,18 @@ def _run_job(jid):
         outbase = unique_base(os.path.splitext(job["name"])[0])
         update(jid, outbase=outbase)            # so a rename elsewhere can't take this name meanwhile
         pk_out = os.path.join(workdir, "parakeet.json")
+        # whisper-cli on Windows reads its arguments in the old code page, so a name like "회의.m4a" or a
+        # user folder with non-English letters would break: it writes to the work folder instead, by short path
+        wout = os.path.join(cli_path(workdir), "whisper") if WIN else outbase
         cmd = [SPK_PY, os.path.abspath(__file__), "--parakeet", wav, pk_out,
                str(spk_threads() if diarizer else max(2, min(8, (os.cpu_count() or 4) - 1)))] if pk else \
-              [WHISPER, "-m", os.path.join(MODEL_DIR, model), "-f", wav,
-               "-l", job["lang"], "-otxt", "-osrt", "-oj", "-ojf", "-of", outbase, "-pp",
+              [WHISPER, "-m", cli_path(os.path.join(MODEL_DIR, model)), "-f", cli_path(wav),
+               "-l", job["lang"], "-otxt", "-osrt", "-oj", "-ojf", "-of", wout, "-pp",
                "-bs", str(beam), "-bo", str(beam)]       # beam search; temperature fallback stays on
         if not pk and whisper_has("--suppress-nst"):
             cmd += ["-sns"]                               # no "[Music]"-style sound tags
         if not pk and whisper_has("--vad"):               # older whisper.cpp builds lack these
-            cmd += ["--vad", "-vm", os.path.join(MODEL_DIR, VAD_MODEL),
+            cmd += ["--vad", "-vm", cli_path(os.path.join(MODEL_DIR, VAD_MODEL)),
                     "-vsd", "1000", "-vp", "300"]         # keep pauses under 1 s inside speech
         if job.get("prompt") and not pk:
             cmd += ["--prompt", job["prompt"]]
@@ -2370,6 +2445,12 @@ def _run_job(jid):
         p.wait()
         with LOCK:
             PROCS.pop(jid, None)
+        if wout != outbase:
+            for ext in (".txt", ".srt", ".json"):
+                try:
+                    os.replace(wout + ext, outbase + ext)
+                except OSError:
+                    pass
 
         if state_of(jid) == "cancelled":
             for ext in (".txt", ".srt", ".json"):
@@ -2569,7 +2650,7 @@ def vm_query(db):
 
 def safe_title(t, fallback="Voice memo"):
     """A name that is safe as a macOS file name: no slashes or colons, not hidden, under 200 bytes."""
-    t = re.sub(r"[/:\\\x00-\x1f]", "-", t or "").strip().lstrip(". ")
+    t = re.sub(BAD_NAME, "-", t or "").strip().lstrip(". ").rstrip(" .")
     b = t.encode("utf-8")[:200]
     t = b.decode("utf-8", "ignore").strip()
     return t or fallback
@@ -3039,8 +3120,159 @@ def folders_info():
     return {"notes": {"on": nc["on"], "dir": nc["dir"], "show": nc["dir"].replace(HOME, "~", 1)}, "watch": out}
 
 
+# ---------------------------------------------------------------- Windows helpers
+def cli_path(path):
+    """A path whisper-cli can open on Windows: its 8.3 short form when the real one has letters the
+    system's code page can't spell. Unchanged everywhere else."""
+    if not WIN:
+        return path
+    try:
+        path.encode("mbcs")
+        return path
+    except UnicodeEncodeError:
+        pass
+    if not os.path.exists(path):                    # a file still to be written: shorten its folder
+        return os.path.join(cli_path(os.path.dirname(path)), os.path.basename(path))
+    try:
+        buf = ctypes.create_unicode_buffer(1024)
+        if ctypes.windll.kernel32.GetShortPathNameW(path, buf, 1024):
+            return buf.value
+    except Exception:
+        pass
+    return path
+
+
+def os_open(target):
+    """Open a folder, file or web address the way double-clicking it would."""
+    try:
+        if WIN:
+            os.startfile(target)
+        else:
+            subprocess.run(["open", target])
+    except OSError:
+        pass
+
+
+def os_reveal(path):
+    """Show a file selected in Finder / File Explorer."""
+    try:
+        if WIN:
+            subprocess.Popen('explorer /select,"%s"' % os.path.normpath(path))
+        else:
+            subprocess.run(["open", "-R", path])
+    except OSError:
+        pass
+
+
+def _ps(script, args, timeout):
+    """Run a PowerShell script with arguments passed safely through the environment."""
+    env = dict(os.environ)
+    for i, a in enumerate(args):
+        env["MATITA_ARG%d" % i] = a
+    return subprocess.run([POWERSHELL or "powershell", "-NoProfile", "-NonInteractive", "-STA", "-ExecutionPolicy", "Bypass",
+                           "-Command", script], capture_output=True, text=True, timeout=timeout, env=env,
+                          encoding="utf-8", errors="replace")
+
+
+WIN_PICK_FOLDER = r"""
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+Add-Type -AssemblyName System.Windows.Forms
+$owner = New-Object System.Windows.Forms.Form -Property @{TopMost = $true; ShowInTaskbar = $false; Opacity = 0}
+$owner.Show(); $owner.Activate()
+$d = New-Object System.Windows.Forms.FolderBrowserDialog
+$d.Description = $env:MATITA_ARG0; $d.UseDescriptionForTitle = $true; $d.SelectedPath = $env:MATITA_ARG1
+if ($d.ShowDialog($owner) -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.SelectedPath } else { exit 3 }
+"""
+
+
+def win_choose_folder(prompt, start):
+    start = start if os.path.isdir(start) else HOME
+    try:
+        r = _ps(WIN_PICK_FOLDER, [prompt, start], 600)
+    except subprocess.TimeoutExpired:
+        return None
+    except OSError:
+        raise ValueError("Couldn't open the folder picker. Paste a folder path instead.")
+    if r.returncode == 3:
+        return None
+    path = r.stdout.strip()
+    if r.returncode != 0 or not path:
+        raise ValueError("Couldn't open the folder picker. Paste a folder path instead.")
+    return path
+
+
+WIN_RECYCLE = r"""
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+Add-Type -AssemblyName Microsoft.VisualBasic
+$paths = $env:MATITA_ARG0 -split "`n"
+foreach ($p in $paths) { if ($p) { try {
+  [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($p, 'OnlyErrorDialogs', 'SendToRecycleBin')
+} catch { Write-Output $p } } }
+"""
+
+
+def win_recycle(paths, timeout=60):
+    """Move files to the Recycle Bin; returns the ones that couldn't be moved."""
+    try:
+        r = _ps(WIN_RECYCLE, ["\n".join(paths)], timeout)
+        return [l for l in r.stdout.strip().splitlines() if l] if r.returncode == 0 else paths
+    except (OSError, subprocess.SubprocessError):
+        return paths
+
+
+def find_edge():
+    for root in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
+        if root:
+            p = os.path.join(root, "Microsoft", "Edge", "Application", "msedge.exe")
+            if os.path.isfile(p):
+                return p
+    return find_bin("msedge")
+
+
+def win_app():
+    """Windows: start Matita and show it in its own window (Microsoft Edge in app mode, which every
+    Windows 10 and 11 PC has). Closing the window quits Matita."""
+    os.makedirs(APP_DIR, exist_ok=True)
+    try:                                            # pythonw has no console: keep a log for problem reports
+        log = open(os.path.join(APP_DIR, "matita.log"), "a", encoding="utf-8", buffering=1)
+        sys.stdout = sys.stderr = log
+    except OSError:
+        pass
+    print(time.strftime("%Y-%m-%d %H:%M"), "Matita", VERSION, "starting")
+    edge = find_edge()
+    profile = os.path.join(APP_DIR, "window")
+    win = [edge, "--app=" + URL, "--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check",
+           "--window-size=1200,860", "--disable-features=msUndersideButton,msHubApps,EdgeCollections"] if edge else None
+    if port_in_use():                               # already running: just show another window
+        if win:
+            subprocess.Popen(win)
+        else:
+            webbrowser.open(URL)
+        return
+
+    def watch():
+        for _ in range(120):                        # wait until the page answers
+            if port_in_use():
+                break
+            time.sleep(0.25)
+        if not win:
+            webbrowser.open(URL)                    # no Edge: a browser tab, and Matita keeps running
+            return
+        t0 = time.time()
+        p = subprocess.Popen(win)
+        p.wait()
+        if time.time() - t0 < 5:                    # Edge handed the window to a copy that was already open:
+            return                                  # we can't tell when it closes, so keep running
+        print(time.strftime("%Y-%m-%d %H:%M"), "window closed, quitting")
+        shutdown()
+    threading.Thread(target=watch, daemon=True).start()
+    serve(open_browser=False)
+
+
 def choose_folder(prompt, start):
     """macOS folder picker. Returns a path, or None if cancelled. Raises ValueError if it can't open."""
+    if WIN:
+        return win_choose_folder(prompt, start)
     if not OSASCRIPT:
         raise ValueError("The folder picker isn't available. Paste a folder path instead.")
     start = start if os.path.isdir(start) else HOME
@@ -3197,7 +3429,9 @@ def files_of(base):
 
 def clean_title(name, limit=228):
     name = name if isinstance(name, str) else ""
-    name = re.sub(r"[/:\x00-\x1f]", "-", name.strip()).strip(" .")
+    name = re.sub(BAD_NAME, "-", name.strip()).strip(" .")
+    if WIN and re.match(r"(?i)^(con|prn|aux|nul|com\d|lpt\d)(\.|$)", name):     # names Windows reserves
+        name = "_" + name
     name = re.sub(r"\.(meta|ai|unsure|peaks)$", r" \1", name, flags=re.I)   # would clash with our side files
     b = name.encode("utf-8")                     # APFS allows 255 bytes; leave room for ".unsure.json" etc.
     if len(b) > limit:
@@ -3260,6 +3494,8 @@ def _trash_paths(paths, timeout=60):
     """Move files to the Trash; returns the ones that couldn't be moved."""
     if not paths:
         return []
+    if WIN:
+        return win_recycle(paths, timeout)
     if not OSASCRIPT:
         return paths
     try:
@@ -3295,7 +3531,8 @@ def trash_now(jid):
             JOBS[jid] = entry["job"]
             if jid not in ORDER:
                 ORDER.append(jid)
-            JOBS[jid]["warning"] = "Couldn't move this to the Trash. You can delete it in Finder."
+            JOBS[jid]["warning"] = ("Couldn't move this to the Recycle Bin. You can delete it in File Explorer." if WIN
+                                    else "Couldn't move this to the Trash. You can delete it in Finder.")
     if not bad:
         _trashed(entry)
 
@@ -3487,7 +3724,7 @@ class Handler(BaseHTTPRequestHandler):
         arg = lambda k, d="": (qs.get(k) or [d])[0]
 
         if u.path == "/":
-            return self.send_bytes(PAGE.replace("__VER__", VERSION).encode("utf-8"), "text/html; charset=utf-8")
+            return self.send_bytes((WIN_PAGE if WIN else PAGE).replace("__VER__", VERSION).encode("utf-8"), "text/html; charset=utf-8")
 
         if u.path == "/favicon.svg":
             return self.send_bytes(FAVICON_SVG.encode("utf-8"), "image/svg+xml")
@@ -3979,6 +4216,7 @@ class Handler(BaseHTTPRequestHandler):
                 old = AWAKE.pop("rec", None)
             if old and old.poll() is None:
                 old.terminate()
+            WIN_AWAKE["rec"] = time.time() + 600 if data.get("on") else 0.0
             if data.get("on") and CAFFEINATE:
                 with LOCK:
                     AWAKE["rec"] = subprocess.Popen([CAFFEINATE, "-i", "-w", str(os.getpid()), "-t", "600"])  # page renews it
@@ -4158,10 +4396,10 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 path = JOBS.get(jid, {}).get("txt")
             if path and os.path.isfile(path):
-                subprocess.run(["open", "-R", path])
+                os_reveal(path)
             else:
                 os.makedirs(OUT_DIR, exist_ok=True)
-                subprocess.run(["open", OUT_DIR])
+                os_open(OUT_DIR)
             return self.send_json({"ok": True})
 
         self.send_json({"error": "not found"}, 404)
@@ -7851,6 +8089,28 @@ loadInfo(); poll();
 """
 
 
+def windows_words(page):
+    """The page as it reads on Windows: PC instead of Mac, Ctrl instead of ⌘, Recycle Bin, File Explorer."""
+    for a, b in (("⌘", "Ctrl+"), ("this Mac", "this PC"), ("This Mac", "This PC"), ("your Mac", "your PC"),
+                 ("Your Mac", "Your PC"), ("the Mac", "the PC"),
+                 ("Mac's", "PC's"), ("the Trash", "the Recycle Bin"), ("Move to Trash", "Move to Recycle Bin"),
+                 ("Show in Finder", "Show in File Explorer"), ("Open in Finder", "Open in File Explorer"),
+                 ("in Finder", "in File Explorer"), ("A Mac dialog", "A Windows dialog")):
+        page = page.replace(a, b)
+    # Mac-only parts: iPhone Voice Memos (they sync to Macs only) and the lid setting
+    for a, b in (('<button class="btn soft" id="vmOpen">', '<button class="btn soft" id="vmOpen" style="display:none">'),
+                 ('<button class="start" role="listitem" data-start="vmOpen">', '<button class="start" role="listitem" data-start="vmOpen" style="display:none">'),
+                 ('{icon:"vm", label:"Import from iPhone Voice Memos", run:() => $("#vmOpen").click()},', ''),
+                 ('<div class="glist" data-pane="general">\n        <div class="grow">\n          <div class="gl"><b>When the lid is closed</b>',
+                  '<div class="glist" data-pane="general" style="display:none">\n        <div class="grow">\n          <div class="gl"><b>When the lid is closed</b>')):
+        assert a in page, a[:60]
+        page = page.replace(a, b)
+    return page
+
+
+WIN_PAGE = windows_words(PAGE) if WIN else None
+
+
 FAVICON_SVG = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="23" fill="#1f4d35"/><path d="M27 70V31L50 56L73 31V70" fill="none" stroke="#a6e8ae" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 ICON_B64 = "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"
@@ -8494,6 +8754,15 @@ def retire_agent():
         time.sleep(0.25)
 
 
+def shutdown():
+    """Save the queue and quit (Control-C, the service being stopped, or the Windows window closing)."""
+    if RESTORED.is_set():                           # otherwise queue.json still holds work we haven't loaded
+        save_queue()
+    flush_trash()
+    lid_restore()
+    os._exit(0)
+
+
 def serve(open_browser):
     global OUT_DIR
     retire_agent()
@@ -8515,6 +8784,8 @@ def serve(open_browser):
     if missing:
         print("Missing:\n  " + "\n  ".join(missing) + "\n")
 
+    if WIN:     # Windows lets a second program share a port that allows reuse; Matita must have it alone
+        ThreadingHTTPServer.allow_reuse_address = False
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)   # answer right away, even while starting up
 
     def start_up():
@@ -8533,24 +8804,22 @@ def serve(open_browser):
         threading.Thread(target=build_capture_app, daemon=True).start()
         threading.Thread(target=watch_loop, daemon=True).start()
         threading.Thread(target=lid_loop, daemon=True).start()
+        if WIN:
+            threading.Thread(target=win_awake_loop, daemon=True).start()
     threading.Thread(target=lid_restore, daemon=True).start()     # undo anything left from a crash
     threading.Thread(target=start_up, daemon=True).start()
 
-    def stop(*_):
-        if RESTORED.is_set():                       # otherwise queue.json still holds work we haven't loaded
-            save_queue()
-        flush_trash()
-        lid_restore()
-        os._exit(0)
-    for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
-        signal.signal(sig, stop)
+    for sig in (signal.SIGTERM, getattr(signal, "SIGHUP", None), signal.SIGINT):
+        if sig is not None:
+            signal.signal(sig, lambda *_: shutdown())
     if open_browser:
         threading.Timer(0.8, lambda: webbrowser.open(URL)).start()
         print("Matita is running at", URL)
         print("Keep this window open while you use it. Closing it quits Matita.")
     else:
         print(time.strftime("%Y-%m-%d %H:%M"), "Matita service started at", URL)
-    sys.stdout.flush()
+    if sys.stdout:
+        sys.stdout.flush()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -8582,6 +8851,8 @@ def main():
         return install()
     if "--uninstall" in sys.argv:
         return uninstall()
+    if WIN and "--serve" not in sys.argv:
+        return win_app()
     serve(open_browser="--serve" not in sys.argv)
 
 
