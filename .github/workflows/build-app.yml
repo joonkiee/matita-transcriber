@@ -202,7 +202,8 @@ jobs:
         id: v
         run: |
           echo "version=$(grep -m1 '^VERSION = ' matita.py | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
-          ls -la out
+          find out -type f
+          test -n "$(find out -name '*.dmg')" && test -n "$(find out -name '*-setup.exe')"
 
       - name: Publish the release
         uses: softprops/action-gh-release@v2
@@ -212,5 +213,5 @@ jobs:
           name: Matita ${{ steps.v.outputs.version }}
           body_path: .github/release-notes.md
           files: |
-            out/*.dmg
-            out/*-setup.exe
+            out/**/*.dmg
+            out/**/*-setup.exe
