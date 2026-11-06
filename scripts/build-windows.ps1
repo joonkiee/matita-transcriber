@@ -49,9 +49,12 @@ $F = Join-Path $B "ffmpeg"
 if (-not (Test-Path (Join-Path $F "ffmpeg.exe"))) {
   Write-Host "== FFmpeg"
   $rel = Invoke-RestMethod -Headers $Headers "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
-  $asset = $rel.assets | Where-Object { $_.name -match '^ffmpeg-n7\.1-latest-win64-lgpl-7\.1\.zip$' } | Select-Object -First 1
-  if (-not $asset) { $asset = $rel.assets | Where-Object { $_.name -match '^ffmpeg-n7\.\d+-latest-win64-lgpl-7\.\d+\.zip$' } | Select-Object -First 1 }
-  if (-not $asset) { throw "No LGPL FFmpeg 7 build found" }
+  $rel.assets | Where-Object { $_.name -match 'win64-lgpl' } | ForEach-Object { Write-Host "   available: $($_.name)" }
+  # the newest numbered release build (static, LGPL); the nightly "master" build only if there is none
+  $asset = $rel.assets | Where-Object { $_.name -match '^ffmpeg-n(\d+)\.(\d+)-latest-win64-lgpl-\d+\.\d+\.zip$' } |
+    Sort-Object { [version]($_.name -replace '^ffmpeg-n(\d+\.\d+)-.*$', '$1') } -Descending | Select-Object -First 1
+  if (-not $asset) { $asset = $rel.assets | Where-Object { $_.name -eq 'ffmpeg-master-latest-win64-lgpl.zip' } | Select-Object -First 1 }
+  if (-not $asset) { throw "No LGPL FFmpeg build for Windows found" }
   Write-Host "   $($asset.name)"
   $zip = Join-Path $B "ffmpeg.zip"
   Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip
@@ -110,7 +113,7 @@ Get-ChildItem docs -Filter "*-OFL.txt" | ForEach-Object { Copy-Item $_.FullName 
 @"
 Matita for Windows includes:
 - whisper.cpp $WhisperTag (MIT) https://github.com/ggml-org/whisper.cpp
-- FFmpeg 7 (LGPL 2.1, built by https://github.com/BtbN/FFmpeg-Builds without GPL parts) https://ffmpeg.org
+- FFmpeg (LGPL 2.1, built by https://github.com/BtbN/FFmpeg-Builds without GPL parts) https://ffmpeg.org
 - Python $PyMinor from python-build-standalone (PSF License and others) https://github.com/astral-sh/python-build-standalone
 "@ | Set-Content -Encoding utf8 (Join-Path $App "THIRD-PARTY.txt")
 

@@ -432,10 +432,14 @@ def freeze(pid, on):
     """Pause (on=True) or continue a process where it is. Windows has no SIGSTOP; it suspends the threads."""
     try:
         if WIN:
-            h = ctypes.windll.kernel32.OpenProcess(0x0800, False, pid)      # PROCESS_SUSPEND_RESUME
+            k32, nt = ctypes.windll.kernel32, ctypes.windll.ntdll
+            k32.OpenProcess.restype = ctypes.c_void_p                       # handles are pointer-sized
+            k32.CloseHandle.argtypes = [ctypes.c_void_p]
+            nt.NtSuspendProcess.argtypes = nt.NtResumeProcess.argtypes = [ctypes.c_void_p]
+            h = k32.OpenProcess(0x0800, False, pid)                        # PROCESS_SUSPEND_RESUME
             if h:
-                (ctypes.windll.ntdll.NtSuspendProcess if on else ctypes.windll.ntdll.NtResumeProcess)(h)
-                ctypes.windll.kernel32.CloseHandle(h)
+                (nt.NtSuspendProcess if on else nt.NtResumeProcess)(h)
+                k32.CloseHandle(h)
         else:
             os.kill(pid, signal.SIGSTOP if on else signal.SIGCONT)
     except (OSError, AttributeError):

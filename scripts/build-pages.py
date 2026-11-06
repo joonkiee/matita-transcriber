@@ -56,10 +56,10 @@ def page(path, *, lang, title, desc, h1, lead, body, crumb, related, faq=None, a
             "<h3>%s</h3><p>%s</p>" % (html.escape(q), html.escape(a)) for q, a in faq)
     crumbs = " › ".join('<a href="%s%s">%s</a>' % (up, p, html.escape(n)) for n, p in crumb[:-1])
     rel = "".join('<li><a href="%s%s">%s</a></li>' % (up, p, html.escape(n)) for n, p in related)
-    cta = cta or (("무료로 받아 보세요", "Apple Silicon Mac, macOS 14 이상. 계정 없이 바로 써요.", "Mac용 다운로드")
+    cta = cta or (("무료로 받아 보세요", "Apple Silicon Mac(macOS 14 이상)과 Windows 10·11(베타). 계정 없이 바로 써요.", "다운로드")
                   if lang == "ko" else
-                  ("Try it on your next recording", "Free for Apple Silicon Macs on macOS 14 or later. No account.",
-                   "Download for Mac"))
+                  ("Try it on your next recording", "Free for Apple Silicon Macs (macOS 14 or later) and Windows 10 and 11 (beta). No account.",
+                   "Download"))
     hreflang = ""
     if alt is not None or path in ("", "ko/"):
         pass
@@ -134,36 +134,36 @@ def table(rows, heads):
 
 # ------------------------------------------------------------------ comparison pages
 otter_rows = [
-    ("Where speech becomes text", "On your Mac", "Otter's cloud"),
+    ("Where speech becomes text", "On your computer", "Otter's cloud"),
     ("Files you already have", "Any audio or video file", "3 imports on the free plan"),
     ("Free plan", "Everything, no limits", "300 minutes a month, 30 minutes per conversation"),
     ("Paid plan", "None", "$16.99 a month, or $8.33 a month billed yearly"),
-    ("Meetings", "Records both sides from your Mac. No bot joins.", "A bot can join the call"),
+    ("Meetings", "On a Mac, records both sides of the call. No bot joins.", "A bot can join the call"),
     ("Account", "Not needed", "Required"),
 ]
 page("otter-alternative/", lang="en",
-     title="Free Otter alternative for Mac that works offline · Matita",
-     desc="Matita is a free, open-source Otter alternative for Mac. Transcribe meetings, lectures and audio files on your Mac, with no minute limits and no account.",
-     h1="A free, offline Otter alternative for Mac",
-     lead="Matita transcribes meetings, lectures and the recordings you already have, on your own Mac. No minute limits, no upload, no account.",
+     title="Free Otter alternative that works offline, for Mac and Windows · Matita",
+     desc="Matita is a free, open-source Otter alternative for Mac and Windows. Transcribe meetings, lectures and audio files on your own computer, with no minute limits and no account.",
+     h1="A free, offline Otter alternative",
+     lead="Matita transcribes meetings, lectures and the recordings you already have, on your own computer. No minute limits, no upload, no account.",
      crumb=[("Matita", ""), ("Otter alternative", "otter-alternative/")],
      related=[("Granola alternative", "granola-alternative/"), ("Record a Zoom call without a bot", "guides/record-zoom-without-a-bot/"),
               ("Whisper for Mac", "whisper-mac-app/")],
      body=f"""
-<p>Otter is a cloud service: your audio goes to Otter's servers and your transcripts live in Otter's app. Matita does the same job on your Mac. It's free and open source, and every transcript is a plain file in a folder you choose.</p>
+<p>Otter is a cloud service: your audio goes to Otter's servers and your transcripts live in Otter's app. Matita does the same job on your Mac or Windows PC. It's free and open source, and every transcript is a plain file in a folder you choose.</p>
 <h2>Matita and Otter side by side</h2>
 {table(otter_rows, ["Matita", "Otter"])}
 <p class="note">Otter's details as listed on {SRC['otter']} on {CHECKED}. Prices in US dollars, per user, before tax.</p>
 <h2>When Matita is the better fit</h2>
 <ul>
-<li><b>You'd rather your audio didn't leave your Mac.</b> Speech recognition runs on your Mac with whisper.cpp or NVIDIA Parakeet. Summaries can run on your Mac too, with Ollama.</li>
+<li><b>You'd rather your audio didn't leave your computer.</b> Speech recognition runs on your computer with whisper.cpp or NVIDIA Parakeet. Summaries can run there too, with Ollama.</li>
 <li><b>You transcribe a lot.</b> There are no monthly minutes and no length limit per recording.</li>
 <li><b>You have recordings already.</b> Drop in any audio or video file, or let Matita watch a folder.</li>
 <li><b>You keep notes in files.</b> Transcripts are .txt and .srt files; you can save Word or Markdown, or write notes straight into Obsidian.</li>
 </ul>
 <h2>When Otter is the better fit</h2>
 <ul>
-<li>You need it on Windows, Android or in a browser. Matita runs only on Macs with Apple Silicon.</li>
+<li>You need it on a phone or in a browser. Matita runs on Macs with Apple Silicon and on Windows PCs.</li>
 <li>You want transcripts shared with your team in one online workspace.</li>
 <li>You'd like a bot that joins your calendar's meetings for you.</li>
 </ul>
@@ -179,19 +179,19 @@ page("otter-alternative/", lang="en",
           ("Can Matita record Zoom, Teams or Google Meet?", "Yes, on macOS 14.2 or later. Turn on “Include sound from other apps” when recording, and Matita records your microphone and the other people in the call. No bot joins.")])
 
 granola_rows = [
-    ("Where speech becomes text", "On your Mac", "A cloud transcription provider"),
-    ("The original audio", "Stays on your Mac", "Not kept"),
+    ("Where speech becomes text", "On your computer", "A cloud transcription provider"),
+    ("The original audio", "Stays on your computer", "Not kept"),
     ("Files you already have", "Any audio or video file", "Not supported"),
     ("Free plan", "Everything, no limits", "Meeting history for 30 days"),
     ("Paid plan", "None", "$14 per user a month"),
-    ("Meetings", "No bot. Records both sides from your Mac.", "No bot"),
+    ("Meetings", "No bot. On a Mac, records both sides of the call.", "No bot"),
     ("Account", "Not needed", "Required"),
 ]
 page("granola-alternative/", lang="en",
-     title="Free Granola alternative that keeps meetings on your Mac · Matita",
-     desc="Matita is a free, open-source Granola alternative for Mac. Bot-free meeting transcripts and AI summaries made on your Mac, plus your existing audio files.",
-     h1="A free Granola alternative that keeps meetings on your Mac",
-     lead="Like Granola, Matita records meetings without a bot. Unlike Granola, it transcribes on your Mac, keeps the audio, and works with recordings you already have.",
+     title="Free Granola alternative that keeps meetings on your computer · Matita",
+     desc="Matita is a free, open-source Granola alternative for Mac and Windows. Meeting transcripts and AI summaries made on your own computer, plus your existing audio files.",
+     h1="A free Granola alternative that keeps meetings on your computer",
+     lead="Like Granola, Matita records meetings without a bot. Unlike Granola, it transcribes on your own computer, keeps the audio, and works with recordings you already have.",
      crumb=[("Matita", ""), ("Granola alternative", "granola-alternative/")],
      related=[("Otter alternative", "otter-alternative/"), ("Record a Zoom call without a bot", "guides/record-zoom-without-a-bot/"),
               ("Transcribe iPhone Voice Memos on your Mac", "guides/transcribe-voice-memos-on-mac/")],
@@ -205,18 +205,18 @@ page("granola-alternative/", lang="en",
 <li><b>You want to go back to the audio.</b> Every line has a timestamp; click it to hear that moment.</li>
 <li><b>You record more than meetings.</b> Lectures, interviews, iPhone Voice Memos and old files all go through the same app.</li>
 <li><b>You want everything, for good.</b> No history limit, and transcripts are plain files you can open anywhere.</li>
-<li><b>You'd rather nothing went to the cloud.</b> Use Ollama for summaries and nothing leaves your Mac.</li>
+<li><b>You'd rather nothing went to the cloud.</b> Use Ollama for summaries and nothing leaves your computer.</li>
 </ul>
 <h2>When Granola is the better fit</h2>
 <ul>
 <li>You like writing your own notes during the meeting and having AI fill them in. That's Granola's core idea; Matita summarises after the recording.</li>
-<li>You need Windows or iPhone, or want to share notes with your team in one place.</li>
+<li>You want to record calls on Windows or iPhone (Matita records both sides of a call only on a Mac), or share notes with your team in one place.</li>
 </ul>
 {fig("speakers", "Matita's Speakers view, with each person's lines grouped", "Matita's Speakers view collects what each person said, with their share of the talking.", 1)}
 """,
-     faq=[("Does Matita join my meetings as a bot?", "No. It records your microphone and, on macOS 14.2 or later, the sound of the call app on your Mac."),
+     faq=[("Does Matita join my meetings as a bot?", "No. It records your microphone and, on a Mac with macOS 14.2 or later, the sound of the call app. On Windows it records the microphone only for now."),
           ("Can Matita tell who said what?", "Yes. Turn on Speakers before transcribing. Choosing the actual number of people works better than Auto."),
-          ("Are AI summaries private?", "With Ollama, summaries are made on your Mac. If you choose Claude instead, the transcript is sent to Anthropic to write the summary.")])
+          ("Are AI summaries private?", "With Ollama, summaries are made on your computer. If you choose Claude instead, the transcript is sent to Anthropic to write the summary.")])
 
 page("whisper-mac-app/", lang="en",
      title="Free Whisper app for Mac, no Terminal needed · Matita",
@@ -247,10 +247,12 @@ page("whisper-mac-app/", lang="en",
 {fig("time", "A transcript in Matita with timestamps and an audio player", "Every line has a timestamp. Click one to hear that part.", 1)}
 <h2>Requirements</h2>
 <p>A Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later. About 100 MB for the app, plus the model you choose.</p>
+<p><b>Also on Windows (beta).</b> On 64-bit Windows 10 and 11, Matita runs whisper.cpp on your graphics card through Vulkan when its driver supports it, and on the processor otherwise, which is slower.</p>
 """,
      faq=[("Is this the official Whisper app?", "No. Matita is an independent open-source app that runs the openly released Whisper models through whisper.cpp."),
           ("Does it use the Mac's GPU?", "Yes. whisper.cpp in Matita is built with Metal, so it runs on Apple Silicon's GPU."),
-          ("Can I use it on an Intel Mac?", "Not this version. Matita needs Apple Silicon.")])
+          ("Can I use it on an Intel Mac?", "Not this version. On a Mac, Matita needs Apple Silicon."),
+          ("Is there a Windows version?", "Yes, in beta, for 64-bit Windows 10 and 11. Recording the other side of calls and iPhone Voice Memos are Mac-only for now.")])
 
 # ------------------------------------------------------------------ guides
 page("guides/transcribe-voice-memos-on-mac/", lang="en",
@@ -360,7 +362,7 @@ page("ko/guides/voice-memos-to-text/", lang="ko",
 """,
      faq=[("정말 무료인가요?", "네. MIT 라이선스의 오픈소스 앱이고, 유료 플랜이나 사용량 제한, 계정이 없어요."),
           ("인터넷이 필요한가요?", "처음에 음성 모델을 내려받을 때와 업데이트 확인, 요약에 Claude를 고른 경우에만 인터넷을 써요. 받아쓰기는 오프라인에서 돼요."),
-          ("Windows나 인텔 Mac에서도 되나요?", "지금은 Apple Silicon(M1 이상) Mac만 지원해요.")])
+          ("Windows에서도 되나요?", "네, 64비트 Windows 10·11용 베타가 있어요. 받아쓰기, 마이크 녹음, 화자 구분, 요약, 감시 폴더가 돼요. 아이폰 음성 메모와 통화 상대방 목소리 녹음은 지금은 Mac에서만 돼요. 인텔 Mac은 지원하지 않아요.")])
 
 
 # ------------------------------------------------------------------ guide indexes

@@ -10,10 +10,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/joonkiee/matita-transcriber/releases/latest"><b>⬇ Download for Mac</b></a> ·
+  <a href="https://github.com/joonkiee/matita-transcriber/releases/latest"><b>⬇ Download for Mac or Windows</b></a> ·
   <a href="https://joonkiee.github.io/matita-transcriber/">Website</a> ·
   <a href="https://joonkiee.github.io/matita-transcriber/ko/">한국어</a> ·
-  Apple Silicon · macOS 14+ · MIT licence
+  Mac: Apple Silicon, macOS 14+ · Windows 10/11 (beta) · MIT licence
 </p>
 
 <p align="center">
@@ -65,6 +65,8 @@
 
 ## Install
 
+### Mac
+
 You need a Mac with Apple Silicon (M1 or later) and macOS 14 Sonoma or later.
 
 1. Download **Matita-x.y.z.dmg** from the [latest release](https://github.com/joonkiee/matita-transcriber/releases/latest).
@@ -78,7 +80,19 @@ Matita keeps working while its window is closed (watch folders, Voice Memos). Qu
 
 > **Already used the Terminal version?** The first time you open the app it switches over by itself: it stops the old background service and removes its launchers. Your transcripts, settings and downloaded models stay where they are.
 
-<details><summary>Terminal install (the older way, without the app)</summary>
+### Windows (beta)
+
+You need 64-bit Windows 10 or 11.
+
+1. Download **Matita-x.y.z-setup.exe** from the [latest release](https://github.com/joonkiee/matita-transcriber/releases/latest) and run it.
+2. If Windows shows "Windows protected your PC", click **More info**, then **Run anyway** (the installer isn't signed with a paid certificate).
+3. Matita installs for your account only (no administrator password) and opens in its own window. Next time, open it from the Start menu. Closing the window quits Matita.
+
+Everything is inside the app folder (`%LOCALAPPDATA%\Programs\Matita`): Python, whisper.cpp with its CPU and Vulkan back ends, and FFmpeg. Matita uses your graphics card through Vulkan when its driver supports it, and the processor otherwise (slower). Models and settings go to `%LOCALAPPDATA%\Matita`, transcripts to `Documents\Transcripts`.
+
+On Windows, for now: no recording of other apps' sound (calls), no iPhone Voice Memos, and **Save as** downloads the file instead of asking where to save it. Everything else works as on the Mac. Problems? [Open an issue](https://github.com/joonkiee/matita-transcriber/issues/new/choose) and attach `%LOCALAPPDATA%\Matita\matita.log`.
+
+<details><summary>Terminal install on a Mac (the older way, without the app)</summary>
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joonkiee/matita-transcriber/main/install.sh | bash
@@ -268,11 +282,11 @@ cd matita-transcriber
 
 ## Releasing a new version (for maintainers)
 
-1. Raise `VERSION` near the top of `matita.py` (e.g. `3.20.0` → `3.21.0`).
-2. Commit and push to `main`, then tag it: `git tag v3.21.0 && git push origin v3.21.0`.
-3. GitHub Actions ([`build-app.yml`](.github/workflows/build-app.yml)) builds `Matita-3.21.0.dmg` on an Apple Silicon runner, tests it, and attaches it to the release. Apps already installed show **Download** within 12 hours. (The Terminal version updates itself from `main`.)
+1. Raise `VERSION` near the top of `matita.py` (e.g. `3.21.0` → `3.22.0`) and update `.github/release-notes.md`.
+2. Commit and push to `main`.
+3. Run the **Build Matita (Mac and Windows)** workflow with **release** ticked (Actions → the workflow → Run workflow), or push a tag `v3.22.0`. GitHub Actions ([`build-app.yml`](.github/workflows/build-app.yml)) builds `Matita-3.22.0.dmg` on an Apple Silicon runner and `Matita-3.22.0-setup.exe` on Windows, tests both with real transcriptions, and publishes the release with both. Apps already installed show **Download** within 12 hours. (The Terminal version updates itself from `main`.)
 
-To build the app yourself on a Mac: `bash scripts/build-app.sh` (needs the Xcode Command Line Tools and `cmake`).
+To build the app yourself on a Mac: `bash scripts/build-app.sh` (needs the Xcode Command Line Tools and `cmake`). On Windows: `pwsh scripts\build-windows.ps1` (needs Visual Studio 2022 with C++, CMake, Git, Inno Setup 6, and the Vulkan SDK for the GPU back end).
 
 ## FAQ
 

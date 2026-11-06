@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   mac:
-    runs-on: macos-14            # Apple Silicon
+    runs-on: macos-15            # Apple Silicon (builds for macOS 14 and later)
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
             .build-win/whisper
             .build-win/ffmpeg
             .build-win/python
-          key: win-tools-v1-whisper-v1.9.5-vulkan-ffmpeg7-py3.12
+          key: win-tools-v1-whisper-v1.9.5-vulkan-ffmpeg-py3.12
 
       - name: Vulkan SDK (for the GPU back end)
         if: steps.tools.outputs.cache-hit != 'true'
@@ -137,7 +137,7 @@ jobs:
           $srv = Start-Process "$App\python\python.exe" -ArgumentList "-X","utf8","$App\matita.py","--serve" `
                    -RedirectStandardOutput "$env:RUNNER_TEMP\server.log" -RedirectStandardError "$env:RUNNER_TEMP\server.err" -PassThru
           try {
-            python scripts/smoke_job.py "$env:RUNNER_TEMP\t.wav" "recordings"
+            python scripts/smoke_job.py "$env:RUNNER_TEMP\t.wav" "recordings" --pause
             if ($LASTEXITCODE -ne 0) { throw "transcription job failed" }
             # a Korean file name, on an English Windows: exercises the short-path handling
             python -c "import shutil,os; shutil.copy(os.path.join(os.environ['RUNNER_TEMP'],'t.wav'), os.path.join(os.environ['RUNNER_TEMP'],'\uD68C\uC758 \uB179\uC74C.wav'))"

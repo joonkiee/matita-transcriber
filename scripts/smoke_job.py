@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sends a recording through a running Matita and checks the transcript (used by the CI builds).
 
-    python3 scripts/smoke_job.py recording.wav "expected word" [base URL]
+    python3 scripts/smoke_job.py recording.wav "expected word" [base URL] [--pause]
 """
 import json
 import os
@@ -10,8 +10,10 @@ import time
 import urllib.parse
 import urllib.request
 
-wav, expect = sys.argv[1], sys.argv[2].lower()
-base = sys.argv[3] if len(sys.argv) > 3 else "http://127.0.0.1:8765/"
+wav, expect = [a for a in sys.argv[1:] if not a.startswith("--")][:2]
+expect = expect.lower()
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+base = args[2] if len(args) > 2 else "http://127.0.0.1:8765/"
 
 
 def get(path):
@@ -35,6 +37,19 @@ req = urllib.request.Request(base + "api/upload", data=data, method="POST", head
 with urllib.request.urlopen(req, timeout=60) as r:
     jid = json.load(r)["id"]
 print("queued", jid)
+
+def post(path, body):
+    req = urllib.request.Request(base + path, data=json.dumps(body).encode(), method="POST",
+                                 headers={"X-Transcriber": "1", "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.load(r)
+
+
+if "--pause" in sys.argv:           # pause while it works and continue: the job must still finish
+    time.sleep(1.5)
+    print("pause:", post("api/pause", {"on": True}))
+    time.sleep(3)
+    print("resume:", post("api/pause", {"on": False}))
 
 end, last = time.time() + 600, None
 while time.time() < end:
