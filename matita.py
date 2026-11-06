@@ -38,7 +38,7 @@ import ctypes
 from xml.sax.saxutils import escape as xml_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = "3.22.0"
+VERSION = "3.22.1"
 REPO = "joonkiee/matita-transcriber"   # GitHub "owner/name", used for update checks
 WIN = os.name == "nt"
 # Set by Matita.app (the downloadable Mac app), which carries its own Python, whisper-cli, ffmpeg and
@@ -8767,6 +8767,17 @@ def shutdown():
     os._exit(0)
 
 
+def watch_parent():
+    """In Matita.app the window app starts this server. If that app goes away without stopping it
+    (a crash, Force Quit, an update replacing it), quit too, so the next launch finds the port free."""
+    parent = os.getppid()
+    while True:
+        time.sleep(2)
+        if os.getppid() != parent:                  # reparented: the app that started us is gone
+            print(time.strftime("%Y-%m-%d %H:%M"), "the Matita app went away, stopping")
+            shutdown()
+
+
 def serve(open_browser):
     global OUT_DIR
     retire_agent()
@@ -8788,6 +8799,8 @@ def serve(open_browser):
     if missing:
         print("Missing:\n  " + "\n  ".join(missing) + "\n")
 
+    if BUNDLE and not WIN:
+        threading.Thread(target=watch_parent, daemon=True).start()
     if WIN:     # Windows lets a second program share a port that allows reuse; Matita must have it alone
         ThreadingHTTPServer.allow_reuse_address = False
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)   # answer right away, even while starting up

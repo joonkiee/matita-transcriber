@@ -9,6 +9,52 @@ import ServiceManagement
 let port = 8765
 let home = URL(string: "http://127.0.0.1:\(port)/")!
 
+// MARK: leftovers from an earlier run
+
+/// Runs a small command and returns what it printed.
+func runQuiet(_ path: String, _ args: [String]) -> String {
+    let p = Process()
+    p.executableURL = URL(fileURLWithPath: path)
+    p.arguments = args
+    let out = Pipe()
+    p.standardOutput = out
+    p.standardError = FileHandle.nullDevice
+    do { try p.run() } catch { return "" }
+    let data = out.fileHandleForReading.readDataToEndOfFile()
+    p.waitUntilExit()
+    return String(data: data, encoding: .utf8) ?? ""
+}
+
+/// Programs listening on Matita's port that are a Matita server (this app's, an older app's,
+/// or the old Terminal install), and not this process.
+func matitaServersOnPort() -> [pid_t] {
+    let pids = runQuiet("/usr/sbin/lsof", ["-nP", "-t", "-iTCP:\(port)", "-sTCP:LISTEN"])
+        .split(whereSeparator: \.isNewline).compactMap { pid_t($0.trimmingCharacters(in: .whitespaces)) }
+    return pids.filter { pid in
+        guard pid != getpid() else { return false }
+        let cmd = runQuiet("/bin/ps", ["-o", "command=", "-p", String(pid)])
+        return cmd.contains("matita.py") || cmd.contains("stt_app.py")
+    }
+}
+
+/// A Matita server left running after the app quit unexpectedly (or from an older copy) holds the
+/// port, and a new one can't start. Ask it to stop, then make it stop.
+func clearStaleServers() {
+    var left = matitaServersOnPort()
+    guard !left.isEmpty else { return }
+    for pid in left {
+        kill(pid, SIGCONT)          // in case it was paused
+        kill(pid, SIGTERM)          // it saves its queue and exits
+    }
+    for _ in 0..<30 {
+        usleep(100_000)
+        left = matitaServersOnPort()
+        if left.isEmpty { return }
+    }
+    for pid in left { kill(pid, SIGKILL) }
+    usleep(300_000)
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNavigationDelegate, WKDownloadDelegate, NSWindowDelegate {
     var window: NSWindow!
     var web: WKWebView!
@@ -22,8 +68,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
     func applicationDidFinishLaunching(_ note: Notification) {
         buildMenu()
         makeWindow()
-        startServer()
-        waitForServer(tries: 0)
+        DispatchQueue.global(qos: .userInitiated).async {
+            clearStaleServers()
+            DispatchQueue.main.async {
+                self.startServer()
+                self.waitForServer(tries: 0)
+            }
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ app: NSApplication) -> Bool { false }   // keeps transcribing
