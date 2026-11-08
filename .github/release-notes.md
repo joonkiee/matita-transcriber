@@ -1,8 +1,9 @@
 **Download:**
-- **Mac:** `Matita-3.22.1.dmg` (Apple Silicon, macOS 14 or later)
-- **Windows (beta):** `Matita-3.22.1-setup.exe` (64-bit Windows 10 or 11)
+- **Mac:** `Matita-3.22.2.dmg` (Apple Silicon, macOS 14 or later)
+- **Windows (beta):** `Matita-3.22.2-setup.exe` (64-bit Windows 10 or 11)
 
 ### Fixed
+- **Matita wouldn't open when another program used its port (8765)**, for example another local app or developer tool. Matita now takes the next free port instead.
 - **Matita sometimes wouldn't open on a Mac** after it had quit unexpectedly or been updated: an earlier copy of its background server could keep running and hold its port, so the window stayed on "Starting Matita…". The server now stops by itself when its app goes away, and Matita clears any leftover copy when it starts.
 
 ### New in 3.22

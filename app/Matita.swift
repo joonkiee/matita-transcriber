@@ -6,8 +6,9 @@ import Cocoa
 import WebKit
 import ServiceManagement
 
-let port = 8765
-let home = URL(string: "http://127.0.0.1:\(port)/")!
+// Matita's usual port. If another program already uses it, Matita takes the next free one (see choosePort).
+var port = 8765
+var home: URL { URL(string: "http://127.0.0.1:\(port)/")! }
 
 // MARK: leftovers from an earlier run
 
@@ -27,8 +28,8 @@ func runQuiet(_ path: String, _ args: [String]) -> String {
 
 /// Programs listening on Matita's port that are a Matita server (this app's, an older app's,
 /// or the old Terminal install), and not this process.
-func matitaServersOnPort() -> [pid_t] {
-    let pids = runQuiet("/usr/sbin/lsof", ["-nP", "-t", "-iTCP:\(port)", "-sTCP:LISTEN"])
+func matitaServersOnPort(_ p: Int) -> [pid_t] {
+    let pids = runQuiet("/usr/sbin/lsof", ["-nP", "-t", "-iTCP:\(p)", "-sTCP:LISTEN"])
         .split(whereSeparator: \.isNewline).compactMap { pid_t($0.trimmingCharacters(in: .whitespaces)) }
     return pids.filter { pid in
         guard pid != getpid() else { return false }
@@ -39,8 +40,8 @@ func matitaServersOnPort() -> [pid_t] {
 
 /// A Matita server left running after the app quit unexpectedly (or from an older copy) holds the
 /// port, and a new one can't start. Ask it to stop, then make it stop.
-func clearStaleServers() {
-    var left = matitaServersOnPort()
+func clearStaleServers(on p: Int) {
+    var left = matitaServersOnPort(p)
     guard !left.isEmpty else { return }
     for pid in left {
         kill(pid, SIGCONT)          // in case it was paused
@@ -48,11 +49,39 @@ func clearStaleServers() {
     }
     for _ in 0..<30 {
         usleep(100_000)
-        left = matitaServersOnPort()
+        left = matitaServersOnPort(p)
         if left.isEmpty { return }
     }
     for pid in left { kill(pid, SIGKILL) }
     usleep(300_000)
+}
+
+/// True if nothing is listening on 127.0.0.1:p.
+func portIsFree(_ p: Int) -> Bool {
+    let fd = socket(AF_INET, SOCK_STREAM, 0)
+    if fd < 0 { return false }
+    defer { close(fd) }
+    var yes: Int32 = 1          // like the server: a port left in TIME_WAIT by a quit Matita counts as free
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
+    var addr = sockaddr_in()
+    addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+    addr.sin_family = sa_family_t(AF_INET)
+    addr.sin_port = in_port_t(UInt16(p).bigEndian)
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1")
+    let r = withUnsafePointer(to: &addr) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) }
+    }
+    return r == 0
+}
+
+/// The port this run of Matita uses: 8765 unless another program holds it. A Matita server left over
+/// from an earlier run is stopped first (only one Matita app runs at a time, so it can't be in use).
+func choosePort() -> Int {
+    for p in 8765...8799 {
+        clearStaleServers(on: p)
+        if portIsFree(p) { return p }
+    }
+    return 8765
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNavigationDelegate, WKDownloadDelegate, NSWindowDelegate {
@@ -69,8 +98,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         buildMenu()
         makeWindow()
         DispatchQueue.global(qos: .userInitiated).async {
-            clearStaleServers()
+            let p = choosePort()
             DispatchQueue.main.async {
+                port = p
                 self.startServer()
                 self.waitForServer(tries: 0)
             }
@@ -102,6 +132,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         p.arguments = [res.appendingPathComponent("matita.py").path, "--serve"]
         var env = ProcessInfo.processInfo.environment
         env["MATITA_APP_BUNDLE"] = Bundle.main.bundlePath
+        env["MATITA_PORT"] = String(port)
         env["PYTHONDONTWRITEBYTECODE"] = "1"
         env["PYTHONNOUSERSITE"] = "1"
         p.environment = env

@@ -31,6 +31,7 @@ import tempfile
 import threading
 import time
 import urllib.parse
+import urllib.request
 import uuid
 import webbrowser
 import zipfile
@@ -38,7 +39,7 @@ import ctypes
 from xml.sax.saxutils import escape as xml_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = "3.22.1"
+VERSION = "3.22.2"
 REPO = "joonkiee/matita-transcriber"   # GitHub "owner/name", used for update checks
 WIN = os.name == "nt"
 # Set by Matita.app (the downloadable Mac app), which carries its own Python, whisper-cli, ffmpeg and
@@ -49,7 +50,7 @@ if WIN and not BUNDLE and os.path.isdir(os.path.join(os.path.dirname(os.path.abs
     BUNDLE = os.path.dirname(os.path.abspath(__file__))
 BUNDLE_BIN = (os.path.join(BUNDLE, "bin") if WIN else os.path.join(BUNDLE, "Contents", "Resources", "bin")) if BUNDLE else None
 NAME = "Matita"
-PORT = 8765
+PORT = int(os.environ.get("MATITA_PORT") or 8765)       # the Mac app passes another one when 8765 is taken
 HOME = os.path.expanduser("~")
 
 
@@ -3224,6 +3225,21 @@ def win_recycle(paths, timeout=60):
         return paths
 
 
+def set_port(p):
+    global PORT, URL
+    PORT, URL = p, "http://127.0.0.1:%d/" % p
+    Handler.ALLOWED_HOSTS = ("127.0.0.1:%d" % p, "localhost:%d" % p)
+
+
+def is_matita():
+    """Is the program on PORT a Matita server (and not some other app that happens to use the port)?"""
+    try:
+        with urllib.request.urlopen(URL + "api/info", timeout=3) as r:
+            return "version" in json.loads(r.read().decode("utf-8", "replace"))
+    except Exception:
+        return False
+
+
 def find_edge():
     for root in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
         if root:
@@ -3247,12 +3263,19 @@ def win_app():
     profile = os.path.join(APP_DIR, "window")
     win = [edge, "--app=" + URL, "--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check",
            "--window-size=1200,860", "--disable-features=msUndersideButton,msHubApps,EdgeCollections"] if edge else None
-    if port_in_use():                               # already running: just show another window
-        if win:
-            subprocess.Popen(win)
-        else:
-            webbrowser.open(URL)
-        return
+    for p in range(8765, 8800):                     # 8765, or the next port no other program uses
+        set_port(p)
+        if not port_in_use():
+            break
+        if is_matita():                             # already running: just show another window
+            if win:
+                win[1] = "--app=" + URL
+                subprocess.Popen(win)
+            else:
+                webbrowser.open(URL)
+            return
+    if win:
+        win[1] = "--app=" + URL
 
     def watch():
         for _ in range(120):                        # wait until the page answers
